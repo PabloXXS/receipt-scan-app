@@ -1,0 +1,4 @@
+export PATH="$HOME/development/flutter/bin:$PATH"; open -a Simulator; UDID=$(xcrun simctl list devices | awk -F'[()]' '/Ticket iPhone/{print $2; exit}'); if [ -z "$UDID" ]; then UDID=$(xcrun simctl list devices | awk -F'[()]' '/iPhone/ && /Booted|Shutdown/ {print $2; exit}'); fi; xcrun simctl boot "$UDID" || true; xcrun simctl bootstatus "$UDID" -b; flutter run -d "$UDID"
+
+flutter run -d B2B612A8-5CF0-4FB7-A900-C4A297C9DC51
+
