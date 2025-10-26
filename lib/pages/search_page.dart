@@ -19,74 +19,46 @@ class _Content extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double top = MediaQuery.of(context).viewPadding.top;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Container(
-          padding: EdgeInsets.only(top: top + 12, left: 16, right: 16, bottom: 20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: <Color>[Colors.blue.shade800, Colors.blue.shade600],
-            ),
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+      child: CustomScrollView(
+        slivers: <Widget>[
+          CupertinoSliverNavigationBar(
+            largeTitle: Text(title),
+            trailing: const Icon(CupertinoIcons.add),
+            backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(context),
           ),
-          child: Row(
-            children: <Widget>[
-              const Icon(Icons.search, color: Colors.white, size: 24),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+          BluePullToRefresh(
+            backgroundColor: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+            topRadius: 0,
+            onRefresh: () async {
+              await Future<void>.delayed(
+                  const Duration(milliseconds: 800));
+            },
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: 16 + 72,
+              top: 16,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(icon, size: 72),
+                    const SizedBox(height: 12),
+                    Text(title,
+                        style: Theme.of(context).textTheme.titleMedium),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              const Icon(Icons.add, color: Colors.white, size: 24),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Container(
-            color: Colors.white,
-            child: CustomScrollView(
-              slivers: <Widget>[
-                BluePullToRefresh(
-                  backgroundColor: Colors.blue.shade600,
-                  topRadius: 0,
-                  onRefresh: () async {
-                    await Future<void>.delayed(const Duration(milliseconds: 800));
-                  },
-                ),
-                SliverPadding(
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    bottom: MediaQuery.of(context).viewPadding.bottom + 16 + 72,
-                    top: 16,
-                  ),
-                  sliver: SliverToBoxAdapter(
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Icon(icon, size: 72),
-                          const SizedBox(height: 12),
-                          Text(title, style: Theme.of(context).textTheme.titleMedium),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
-
-

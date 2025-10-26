@@ -1,4 +1,43 @@
-export PATH="$HOME/development/flutter/bin:$PATH"; open -a Simulator; UDID=$(xcrun simctl list devices | awk -F'[()]' '/Ticket iPhone/{print $2; exit}'); if [ -z "$UDID" ]; then UDID=$(xcrun simctl list devices | awk -F'[()]' '/iPhone/ && /Booted|Shutdown/ {print $2; exit}'); fi; xcrun simctl boot "$UDID" || true; xcrun simctl bootstatus "$UDID" -b; flutter run -d "$UDID"
+# Команда запуска Flutter приложения на iOS симуляторе
 
+# Простая команда (если симулятор уже запущен)
 flutter run -d B2B612A8-5CF0-4FB7-A900-C4A297C9DC51
 
+# Полная команда с автозапуском симулятора
+export PATH="$HOME/development/flutter/bin:$PATH"; \
+open -a Simulator; \
+UDID=$(xcrun simctl list devices | awk -F'[()]' '/Ticket iPhone/{print $2; exit}'); \
+if [ -z "$UDID" ]; then \
+  UDID=$(xcrun simctl list devices | awk -F'[()]' '/iPhone/ && /Booted|Shutdown/ {print $2; exit}'); \
+fi; \
+xcrun simctl boot "$UDID" 2>/dev/null || true; \
+xcrun simctl bootstatus "$UDID" -b; \
+flutter run -d "$UDID"
+
+# Или ещё проще (рекомендуется)
+flutter run -d ios
+
+# ====================================
+# Команды для работы с Tesseract
+# ====================================
+
+# Запуск Tesseract локально
+cd supabase/functions/_shared/tesseract-service
+docker-compose up --build
+
+# В другом терминале - настройка секретов
+supabase secrets set --env-file .env.local TESSERACT_OCR_URL=http://host.docker.internal:3000
+supabase secrets set --env-file .env.local AI_PROVIDER=tesseract
+
+# ====================================
+# Полезные команды
+# ====================================
+
+# Список всех симуляторов
+xcrun simctl list devices
+
+# Перезагрузка симулятора
+xcrun simctl shutdown all && xcrun simctl boot B2B612A8-5CF0-4FB7-A900-C4A297C9DC51
+
+# Очистка и пересборка iOS
+flutter clean && cd ios && rm -rf Pods Podfile.lock && pod install && cd .. && flutter run -d ios

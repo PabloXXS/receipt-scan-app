@@ -1,24 +1,71 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'providers/cupertino_theme_provider.dart';
+import 'core/supabase_config.dart';
 import 'pages/home_page.dart';
-import 'pages/search_page.dart';
+import 'pages/analytics_page.dart';
 import 'pages/profile_page.dart';
+import 'pages/login_page.dart';
+// import 'widgets/receipt_add_sheet.dart';
+import 'package:ticket_app/l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-void main() {
-  runApp(const TicketApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: SupabaseConfig.projectUrl,
+    anonKey: SupabaseConfig.anonKey,
+  );
+  
+  runApp(const ProviderScope(child: TicketApp()));
 }
 
-class TicketApp extends StatelessWidget {
+class TicketApp extends ConsumerWidget {
   const TicketApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cupertinoTheme = ref.watch(cupertinoThemeProvider);
+    
+    return CupertinoApp(
       title: 'Ticket App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const HomeShell(),
+      theme: cupertinoTheme,
+      home: const AuthWrapper(),
+      localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: const <Locale>[Locale('en'), Locale('ru')],
+    );
+  }
+}
+
+class AuthWrapper extends ConsumerWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return StreamBuilder<Session?>(
+      stream: Supabase.instance.client.auth.onAuthStateChange.map((data) => data.session),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CupertinoPageScaffold(
+            child: Center(
+              child: CupertinoActivityIndicator(),
+            ),
+          );
+        }
+        
+        final session = snapshot.data;
+        if (session == null) {
+          return const LoginPage();
+        }
+        
+        return const HomeShell();
+      },
     );
   }
 }
@@ -31,115 +78,53 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  int _currentIndex = 0;
-
-  static const List<Widget> _pages = <Widget>[
-    HomePage(),
-    SearchPage(),
-    ProfilePage(),
-  ];
-
-  void _onItemTapped(int index) {
-    if (index == _currentIndex) return;
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final double bottomInset = MediaQuery.of(context).viewPadding.bottom;
-    final double extraBottomPadding = bottomInset > 0 ? 8.0 : 0.0;
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        top: false,
-        bottom: true,
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _pages,
-        ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(left: 16, right: 16, bottom: extraBottomPadding + 8),
-        child: _RoundedBottomBar(
-            currentIndex: _currentIndex,
-            onTap: _onItemTapped,
-            items: const <_BottomItem>[
-              _BottomItem(icon: Icons.list_alt_rounded, label: 'Список'),
-              _BottomItem(icon: Icons.camera_alt_rounded, label: 'Камера'),
-              _BottomItem(icon: Icons.settings_rounded, label: 'Настройки'),
-            ],
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        backgroundColor: CupertinoColors.systemGrey6.resolveFrom(context),
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Icon(CupertinoIcons.list_bullet),
+            ),
           ),
-      ),
-    );
-  }
-}
-
-class _BottomItem {
-  const _BottomItem({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-}
-
-class _RoundedBottomBar extends StatelessWidget {
-  const _RoundedBottomBar({
-    required this.currentIndex,
-    required this.onTap,
-    required this.items,
-  });
-
-  final int currentIndex;
-  final void Function(int) onTap;
-  final List<_BottomItem> items;
-
-  @override
-  Widget build(BuildContext context) {
-    final ColorScheme scheme = Theme.of(context).colorScheme;
-    return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(28)),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: <Color>[
-              Colors.blue.shade700,
-              Colors.blue.shade500,
-            ],
+          BottomNavigationBarItem(
+            icon: Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Icon(CupertinoIcons.chart_bar),
+            ),
           ),
-          boxShadow: const <BoxShadow>[
-            BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4)),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List<Widget>.generate(items.length, (int i) {
-            final bool selected = i == currentIndex;
-            final Color iconColor = selected ? Colors.white : Colors.white70;
-            final Color textColor = selected ? Colors.white : Colors.white70;
-            return Expanded(
-              child: InkWell(
-                onTap: () => onTap(i),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(items[i].icon, color: iconColor),
-                      const SizedBox(height: 6),
-                      Text(
-                        items[i].label,
-                        style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+          BottomNavigationBarItem(
+            icon: Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: Icon(CupertinoIcons.gear),
+            ),
+          ),
+        ],
+        height: 40,
+      ),
+      tabBuilder: (BuildContext context, int index) {
+        switch (index) {
+          case 0:
+            return CupertinoTabView(
+              key: const ValueKey('home_tab'),
+              builder: (_) => const HomePage(),
             );
-          }),
-        ),
-      ),
+          case 1:
+            return CupertinoTabView(
+              key: const ValueKey('analytics_tab'),
+              builder: (_) => const AnalyticsPage(),
+            );
+          case 2:
+          default:
+            return CupertinoTabView(
+              key: const ValueKey('profile_tab'),
+              builder: (_) => const ProfilePage(),
+            );
+        }
+      },
     );
   }
 }

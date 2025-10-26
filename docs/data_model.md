@@ -12,18 +12,21 @@
 
 - Используем `auth.users` как источник истины
 
-### merchants
+### merchants (legacy, не используется)
 
 - `id uuid pk default gen_random_uuid()`
 - `name text not null`
-- `inn text null` -- при необходимости
+- `inn text null`
+- `icon_name text default 'folder'`
 - - общие поля
+
+**Примечание**: таблица `merchants` больше не используется в приложении. Названия магазинов теперь хранятся напрямую в поле `merchant_name` таблицы `receipts`.
 
 ### receipts
 
 - `id uuid pk default gen_random_uuid()`
 - `user_id uuid not null` (fk -> auth.users)
-- `merchant_id uuid null` (fk -> merchants)
+- `merchant_name text null` -- название магазина из OCR (не FK)
 - `purchase_date date null`
 - `purchase_time time null`
 - `total numeric(12,2) not null default 0`
@@ -31,6 +34,7 @@
 - `status text not null default 'processing'` -- processing|ready|failed
 - `source_file_id uuid null` (fk -> files)
 - `error_text text null`
+- `store_confidence numeric(3,2) null` -- уверенность в определении названия магазина (0-1)
 - - общие поля
 - Индексы: `(user_id)`, `(status)`, `(purchase_date)`
 
@@ -46,12 +50,14 @@
 - - общие поля
 - Индексы: `(receipt_id)`, `(name)`
 
-### categories
+### categories (категории товаров)
 
 - `id uuid pk default gen_random_uuid()`
-- `name text unique not null`
-- `parent_id uuid null` (self fk)
+- `name text unique not null` -- название категории товара
+- `parent_id uuid null` (self fk) -- для иерархии категорий (опционально)
 - - общие поля
+
+**Примечание**: таблица используется для группировки позиций чеков (`receipt_items`) по категориям. При анализе чека ИИ автоматически присваивает категории товарам на основе существующих категорий или может быть создана новая категория.
 
 ### files
 

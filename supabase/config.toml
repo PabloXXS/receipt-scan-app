@@ -1,0 +1,11 @@
+project_id = "wolzvpuqmjsicjudkblr"
+
+[functions]
+
+[functions.analyze]
+verify_jwt = true
+
+[functions.status]
+verify_jwt = true
+
+
