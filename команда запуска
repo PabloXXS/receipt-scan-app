@@ -1,21 +1,44 @@
-# Команда запуска Flutter приложения на iOS симуляторе
+# Команда запуска Flutter приложения
 
-# Простая команда (если симулятор уже запущен)
-flutter run -d B2B612A8-5CF0-4FB7-A900-C4A297C9DC51
+# ⚠️ ВАЖНО: iOS 26.0 (бета) несовместим с Flutter 3.35.7
+# Используй физическое устройство или downgrade Xcode до 15.4/16.1
 
-# Полная команда с автозапуском симулятора
-export PATH="$HOME/development/flutter/bin:$PATH"; \
-open -a Simulator; \
-UDID=$(xcrun simctl list devices | awk -F'[()]' '/Ticket iPhone/{print $2; exit}'); \
-if [ -z "$UDID" ]; then \
-  UDID=$(xcrun simctl list devices | awk -F'[()]' '/iPhone/ && /Booted|Shutdown/ {print $2; exit}'); \
-fi; \
-xcrun simctl boot "$UDID" 2>/dev/null || true; \
-xcrun simctl bootstatus "$UDID" -b; \
-flutter run -d "$UDID"
+# ====================================
+# ВАРИАНТ 1: Запуск на физическом устройстве (РЕКОМЕНДУЕТСЯ)
+# ====================================
+flutter run -d 00008120-00066D821468C01E
 
-# Или ещё проще (рекомендуется)
+# Для release режима (быстрее, но без hot reload):
+# flutter run --release -d 00008120-00066D821468C01E
+
+# ====================================
+# ВАРИАНТ 2: Запуск на iOS симуляторе
+# ====================================
+# Сначала открыть симулятор и дождаться загрузки
+open -a Simulator
+
+# Затем запустить приложение (после того как симулятор загрузился)
 flutter run -d ios
+
+# Или запустить на конкретном симуляторе по UID
+flutter run -d B7B8D185-455F-42A7-8FEC-DA6B2F3F861D
+
+# ====================================
+# Как узнать UID симулятора:
+# ====================================
+# Способ 1: через Flutter (показывает доступные устройства с UID)
+flutter devices
+
+# Способ 2: через Xcode (показывает все симуляторы с UID)
+xcrun simctl list devices | grep iPhone
+
+# Способ 3: только запущенные симуляторы
+xcrun simctl list devices | grep Booted
+
+# ====================================
+# ВАРИАНТ 3: Запуск на macOS (для быстрой разработки)
+# ====================================
+flutter run -d macos
 
 # ====================================
 # Команды для работы с Tesseract
@@ -25,19 +48,46 @@ flutter run -d ios
 cd supabase/functions/_shared/tesseract-service
 docker-compose up --build
 
-# В другом терминале - настройка секретов
-supabase secrets set --env-file .env.local TESSERACT_OCR_URL=http://host.docker.internal:3000
-supabase secrets set --env-file .env.local AI_PROVIDER=tesseract
+# В другом терминале - настройка секретов (по одному)
+supabase secrets set TESSERACT_OCR_URL=http://host.docker.internal:3000
+supabase secrets set AI_PROVIDER=tesseract
+
+# Или загрузить все секреты из файла сразу
+# supabase secrets set --env-file .env.local
 
 # ====================================
 # Полезные команды
 # ====================================
 
-# Список всех симуляторов
+# Список всех устройств и симуляторов
+flutter devices
+
+# Список всех симуляторов (детально)
 xcrun simctl list devices
 
-# Перезагрузка симулятора
-xcrun simctl shutdown all && xcrun simctl boot B2B612A8-5CF0-4FB7-A900-C4A297C9DC51
+# Перезагрузка симулятора (сначала узнай UDID командой выше)
+# xcrun simctl shutdown all && xcrun simctl boot <UDID>
 
 # Очистка и пересборка iOS
-flutter clean && cd ios && rm -rf Pods Podfile.lock && pod install && cd .. && flutter run -d ios
+flutter clean && flutter pub get && cd ios && rm -rf Pods Podfile.lock && pod install && cd .. && flutter run -d ios
+
+# ====================================
+# ВАЖНО: Разрешения для камеры (ИСПРАВЛЕНО)
+# ====================================
+# В Info.plist добавлены обязательные разрешения:
+# - NSCameraUsageDescription (для камеры)
+# - NSPhotoLibraryUsageDescription (для галереи)
+# - NSPhotoLibraryAddUsageDescription (для сохранения)
+# 
+# Если камера не работает - проверь что эти ключи есть в:
+# ios/Runner/Info.plist
+
+# ====================================
+# Troubleshooting: белый экран / зависание
+# ====================================
+# 1. Проблема с камерой - добавлены разрешения в Info.plist ✅
+# 2. iOS 26.0 beta - используй физическое устройство
+# 3. Debug медленный - запусти в release режиме:
+#    flutter run --release -d 00008120-00066D821468C01E
+# 4. Приложение не запускается - проверь доверие разработчику:
+#    Настройки → Основные → Управление устройством
