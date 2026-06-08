@@ -43,3 +43,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# === Монорепо ChekiPrices ===
+# Flutter (app/)
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/build/
+app/.idea/
+app/*.iml
+
+# PHP worker (worker/)
+worker/vendor/
+worker/.env
+worker/.phpunit.result.cache
