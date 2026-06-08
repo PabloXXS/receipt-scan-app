@@ -16,5 +16,5 @@
 - **conventions/** — правила кодирования: `flutter.md`, `php-worker.md`,
   `documentation.md`.
 - **adr/** — Architecture Decision Records: `0001-pgmq-queue.md`.
-- **specs/** — дизайн-доки (выход brainstorming).
+- **superpowers/specs/** — дизайн-доки (выход brainstorming).
 - **superpowers/plans/** — планы реализации.
