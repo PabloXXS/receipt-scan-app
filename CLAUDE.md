@@ -44,13 +44,18 @@
 ## Автоматизации Claude Code (`.claude/`)
 
 - **MCP** (`.mcp.json`): `dart` (анализ/тесты/формат/pub/hot-reload), `supabase`
-  (схема, RLS, миграции), `context7` (живая документация — `use riverpod`/`use supabase`).
+  (схема, RLS, миграции), `context7` (живая документация — `use riverpod`/`use supabase`),
+  `github` (issues/PR/Actions; требует авторизации при первом запуске).
 - **Скиллы:** `/flutter-feature <name>` — каркас фичи по конвенциям;
   `/supabase-migration <name>` — миграция с RLS по зонам A–D и проверкой зоны C.
 - **Субагенты:** `privacy-rls-reviewer` (приватность/RLS), `flutter-design-reviewer`
-  (UI/дизайн-система).
+  (UI/дизайн-система), `php-worker-reviewer` (воркер: очередь, провайдеры, service-role).
 - **Хуки:** авто-`dart format` после правок; запрет правок `.env`; ненавязчивые
-  напоминания о дизайн-системе и инварианте приватности.
+  напоминания о дизайн-системе и инварианте приватности. Локальный гейт —
+  `.githooks/pre-commit` (включить: `git config core.hooksPath .githooks`).
+- **CI** (`.github/workflows/`): `ci.yml` — Flutter (format/analyze/test) + PHP-воркер
+  (validate/`php -l`/phpunit); `privacy-review.yml` — опциональный headless-аудит
+  приватности на PR (нужен секрет `ANTHROPIC_API_KEY`).
 
 ## Границы текущего этапа
 

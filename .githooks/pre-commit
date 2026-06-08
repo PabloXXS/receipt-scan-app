@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Локальный гейт перед коммитом (зеркало CI для Flutter).
+# Срабатывает только если в индексе есть изменения .dart под app/ и доступен dart.
+# Воркер (PHP) здесь не проверяется: PHP может быть не установлен локально — это делает CI.
+#
+# Включение (в каждом клоне): git config core.hooksPath .githooks
+set -euo pipefail
+
+changed_dart=$(git diff --cached --name-only --diff-filter=ACM | grep '^app/.*\.dart$' || true)
+
+if [ -n "$changed_dart" ] && command -v dart >/dev/null 2>&1; then
+  echo "[pre-commit] Flutter: проверка форматирования и анализ…"
+  (
+    cd app
+    dart format --output=none --set-exit-if-changed lib test
+  ) || { echo "❌ Найдены неотформатированные файлы. Выполните: cd app && dart format . && git add -u"; exit 1; }
+  (
+    cd app
+    dart analyze
+  ) || { echo "❌ dart analyze нашёл проблемы — исправьте перед коммитом."; exit 1; }
+  echo "[pre-commit] OK"
+fi
+
+exit 0

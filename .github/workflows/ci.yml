@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Отменять устаревшие прогоны на той же ветке/PR
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: Flutter (app)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: stable
+          cache: true
+
+      - name: Зависимости
+        run: flutter pub get
+
+      - name: Проверка форматирования
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Статический анализ
+        run: dart analyze
+
+      - name: Тесты (если есть)
+        run: |
+          if find test -name '*_test.dart' | grep -q .; then
+            flutter test
+          else
+            echo "Тестов пока нет — пропуск."
+          fi
+
+  worker:
+    name: PHP (worker)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+          coverage: none
+
+      - name: Валидация composer.json
+        run: composer validate --strict --no-check-all
+
+      - name: Установка зависимостей
+        run: |
+          if [ -f composer.lock ]; then
+            composer install --no-interaction --no-progress
+          else
+            composer update --no-interaction --no-progress
+          fi
+
+      - name: Синтаксис PHP (php -l)
+        run: find src bin config -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+
+      - name: PHPUnit (если есть тесты)
+        run: |
+          if find tests -name '*Test.php' | grep -q .; then
+            vendor/bin/phpunit
+          else
+            echo "Тестов пока нет — пропуск."
+          fi
