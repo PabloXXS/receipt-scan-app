@@ -17,6 +17,26 @@
 - Доступ к БД — только service-role (`SupabaseClient`).
 - Анонимизация — только в `Privacy/PriceAnonymizer` и `PublishPricesStep`.
 
+## Best practices (PHP 8.2+)
+
+- `declare(strict_types=1)` в каждом файле; строгая типизация параметров и возвратов.
+- DTO — `readonly`-классы (`Fiscal/Dto/*`), неизменяемые; без бизнес-логики в данных.
+- Шаги пайплайна (`Pipeline/Steps/*`) — единичная ответственность; оркестрация только
+  в `ReceiptProcessor`; результат — `ProcessingResult`.
+- Зависимости — через конструктор (DI), а не глобальные/статические синглтоны.
+- Ошибки не «глотать»: исключения доходят до статуса чека (`failed`) и архива очереди.
+- Логи — через PSR-3 (`Support/Logger`); не логировать секреты и service-role ключ.
+- Стиль — PSR-12.
+
+## Качество и CI
+
+- Локально (если установлен PHP): `composer validate --strict`,
+  `find src bin config -name '*.php' -exec php -l {} \;`, `vendor/bin/phpunit`.
+- **PHP может быть не установлен на машине** — полную проверку гарантирует CI
+  (`.github/workflows/ci.yml`, job `worker`): validate → install → `php -l` → phpunit.
+- Изменения цен/анонимизации проверяй субагентом `privacy-rls-reviewer`; общий код
+  воркера — `php-worker-reviewer`.
+
 ## Команды
 
 - `composer install`

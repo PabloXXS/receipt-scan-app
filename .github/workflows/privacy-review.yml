@@ -1,0 +1,35 @@
+name: Privacy & RLS review (optional)
+
+# Необблокирующий headless-ревью инварианта приватности на PR, затрагивающих
+# точку анонимизации, цены или схему/RLS. Запускается только если задан
+# секрет ANTHROPIC_API_KEY; иначе тихо пропускается.
+
+on:
+  pull_request:
+    paths:
+      - 'worker/src/Privacy/**'
+      - 'worker/src/Pipeline/Steps/PublishPricesStep.php'
+      - 'worker/src/Supabase/PriceRepository.php'
+      - 'supabase/**'
+      - '**/*.sql'
+
+jobs:
+  privacy-review:
+    name: privacy-rls-reviewer (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Headless privacy review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "ANTHROPIC_API_KEY не задан — автоматический ревью пропущен."
+            exit 0
+          fi
+          npm install -g @anthropic-ai/claude-code
+          claude -p "Используй субагента privacy-rls-reviewer для аудита изменений этого PR против docs/architecture/privacy.md. Особое внимание: зона C (prices/price_aggregates) НЕ должна получать user_id/family_id. Кратко отчитайся вердиктом APPROVED/ISSUES FOUND." \
+            --allowedTools "Read,Grep,Glob,Bash,Agent" || true
