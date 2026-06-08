@@ -57,3 +57,6 @@ app/*.iml
 worker/vendor/
 worker/.env
 worker/.phpunit.result.cache
+
+# Claude Code — личные локальные настройки
+.claude/settings.local.json
