@@ -33,6 +33,25 @@
 4. **Каждый созданный файл кода** — с шапкой-документацией по шаблону из
    `docs/conventions/documentation.md`.
 
+## ⛔ Инвариант приватности (НЕ нарушать)
+
+Обезличенная карта цен (зона C: `prices`, `price_aggregates`) **никогда** не содержит
+`user_id` или `family_id`. Единственная точка отрыва наблюдений от пользователя —
+`worker/src/Privacy/PriceAnonymizer.php` и `worker/src/Pipeline/Steps/PublishPricesStep.php`.
+Любое изменение схемы цен или кода публикации цен проверяй субагентом
+`privacy-rls-reviewer`. Подробности — `docs/architecture/privacy.md`.
+
+## Автоматизации Claude Code (`.claude/`)
+
+- **MCP** (`.mcp.json`): `dart` (анализ/тесты/формат/pub/hot-reload), `supabase`
+  (схема, RLS, миграции), `context7` (живая документация — `use riverpod`/`use supabase`).
+- **Скиллы:** `/flutter-feature <name>` — каркас фичи по конвенциям;
+  `/supabase-migration <name>` — миграция с RLS по зонам A–D и проверкой зоны C.
+- **Субагенты:** `privacy-rls-reviewer` (приватность/RLS), `flutter-design-reviewer`
+  (UI/дизайн-система).
+- **Хуки:** авто-`dart format` после правок; запрет правок `.env`; ненавязчивые
+  напоминания о дизайн-системе и инварианте приватности.
+
 ## Границы текущего этапа
 
 Реальная бизнес-логика фич, интеграции с фискальными API и OCR-движок ещё НЕ
