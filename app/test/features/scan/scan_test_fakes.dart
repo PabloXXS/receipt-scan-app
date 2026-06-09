@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ticket_app/features/scan/data/photo_picker.dart';
 import 'package:ticket_app/features/scan/domain/repositories/scan_repository.dart';
 
 /// Валидный 1×1 PNG — для Image.memory в widget-тестах и как «байты фото».
@@ -21,4 +22,21 @@ class FakeScanRepository implements ScanRepository {
     if (error != null) throw error!;
     return receiptId;
   }
+}
+
+/// Фейк выбора фото: отдаёт [result] (или null), либо кидает [error].
+class FakePhotoPicker implements PhotoPicker {
+  Uint8List? result;
+  Object? error;
+
+  Future<Uint8List?> _run() async {
+    if (error != null) throw error!;
+    return result;
+  }
+
+  @override
+  Future<Uint8List?> pickFromCamera() => _run();
+
+  @override
+  Future<Uint8List?> pickFromGallery() => _run();
 }
