@@ -17,8 +17,10 @@ void main() {
       tester,
       const PriceDeltaText(delta: 10, currencyCode: 'USD', locale: 'en_US'),
     );
-    final text = tester.widget<Text>(find.byType(Text));
+    final text = tester.widget<Text>(find.byType(Text).first);
     expect(text.style?.color, AppTokens.light.priceUp);
+    final icon = tester.widget<Icon>(find.byIcon(Icons.arrow_upward));
+    expect(icon.color, AppTokens.light.priceUp);
   });
 
   testWidgets('снижение цены красит текст в priceDown', (tester) async {
@@ -26,7 +28,9 @@ void main() {
       tester,
       const PriceDeltaText(delta: -10, currencyCode: 'USD', locale: 'en_US'),
     );
-    final text = tester.widget<Text>(find.byType(Text));
+    final text = tester.widget<Text>(find.byType(Text).first);
     expect(text.style?.color, AppTokens.light.priceDown);
+    final icon = tester.widget<Icon>(find.byIcon(Icons.arrow_downward));
+    expect(icon.color, AppTokens.light.priceDown);
   });
 }

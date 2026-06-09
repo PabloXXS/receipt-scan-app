@@ -35,8 +35,9 @@ class AppBadge extends StatelessWidget {
     };
     final fg = switch (tone) {
       AppBadgeTone.neutral => scheme.onSurfaceVariant,
+      AppBadgeTone.success => Colors.white,
+      AppBadgeTone.warning => Colors.black87,
       AppBadgeTone.error => scheme.onErrorContainer,
-      _ => Colors.white,
     };
     return Container(
       padding: EdgeInsets.symmetric(

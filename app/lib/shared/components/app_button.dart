@@ -43,12 +43,19 @@ class AppButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(tokens.radiusMd),
     );
 
+    final spinnerColor = switch (variant) {
+      AppButtonVariant.primary => scheme.onPrimary,
+      AppButtonVariant.secondary => scheme.primary,
+      AppButtonVariant.text => scheme.primary,
+      AppButtonVariant.destructive => scheme.onError,
+    };
+
     final child = loading
         ? SizedBox(
             height: 18,
             width: 18,
-            child: CircularProgressIndicator(
-                strokeWidth: 2, color: scheme.onPrimary),
+            child:
+                CircularProgressIndicator(strokeWidth: 2, color: spinnerColor),
           )
         : _label(context);
 

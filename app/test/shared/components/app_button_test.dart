@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ticket_app/core/theme/app_theme.dart';
 import 'package:ticket_app/shared/components/app_button.dart';
 
 import '../../helpers/pump_component.dart';
@@ -37,5 +38,23 @@ void main() {
       brightness: Brightness.dark,
     );
     expect(find.text('Ок'), findsOneWidget);
+  });
+
+  testWidgets('loading secondary: спиннер красится в primary, не в onPrimary',
+      (tester) async {
+    await pumpComponent(
+      tester,
+      AppButton(
+        label: 'X',
+        variant: AppButtonVariant.secondary,
+        loading: true,
+        onPressed: () {},
+      ),
+    );
+    final scheme = AppTheme.light().colorScheme;
+    final indicator = tester.widget<CircularProgressIndicator>(
+      find.byType(CircularProgressIndicator),
+    );
+    expect(indicator.color, scheme.primary);
   });
 }
