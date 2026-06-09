@@ -12,6 +12,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/scan_source.dart';
 import '../../domain/repositories/scan_repository.dart';
 import '../datasources/scan_remote_datasource.dart';
 import '../image_compressor.dart';
@@ -30,7 +31,10 @@ class ScanRepositoryImpl implements ScanRepository {
       final path =
           '${_ds.currentUserId}/${DateTime.now().microsecondsSinceEpoch}.jpg';
       await _ds.uploadPhoto(path: path, bytes: compressed);
-      return await _ds.insertReceipt(source: 'ocr', photoPath: path);
+      return await _ds.insertReceipt(
+        source: ScanSource.ocr.dbValue,
+        photoPath: path,
+      );
     } catch (e) {
       throw mapScanException(e);
     }
