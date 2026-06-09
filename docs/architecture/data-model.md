@@ -16,6 +16,12 @@ RLS: доступ по `auth.uid() = user_id` (для чеков расшире�
 | `receipt_items` | `id`, `receipt_id`, `user_id`, `family_id` (nullable), `raw_name`, `product_id`, `qty`, `unit_price`, `sum` | Позиции чека |
 | `loyalty_cards` | `id`, `user_id`, `chain_id`, `barcode`, `barcode_format`, `title`, `color` | Карты лояльности |
 
+> `receipts.store_id` создан без FK на `stores` (таблица зоны B ещё не создана);
+> внешний ключ добавится в reference/worker-цикле. Триггеры: `receipts_fill_owner`
+> (автозаполнение `user_id`/`country_code`/`family_id` из профиля), `receipts_enqueue`
+> (постановка `{receipt_id}` в очередь `pgmq` `receipts_processing`). RLS пока только
+> по `user_id = auth.uid()` — семейное правило добавится в family-цикле.
+
 ## Зона B — общий справочник
 RLS: `select` для всех авторизованных; `insert/update` — только service role (воркер).
 
