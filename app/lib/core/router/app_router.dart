@@ -37,6 +37,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       location: state.matchedLocation,
     ),
     routes: [
+      // Корневой путь — защитный redirect на первую вкладку (для cold deep-links
+      // на '/'); основную развилку auth/гость делает глобальный redirect.
+      GoRoute(
+        path: AppRoutes.home,
+        redirect: (context, state) => AppRoutes.receipts,
+      ),
       GoRoute(
         path: AppRoutes.signIn,
         builder: (context, state) => const SignInScreen(),
