@@ -64,3 +64,33 @@ class NetworkFailure extends AuthFailure {
 class UnknownAuthFailure extends AuthFailure {
   const UnknownAuthFailure([super.message = 'Не удалось выполнить операцию']);
 }
+
+/// Базовая ошибка сканирования чека (пользователю показывается `message`).
+sealed class ScanFailure extends Failure {
+  const ScanFailure(super.message);
+}
+
+/// Нет доступа к камере или галерее.
+class CameraPermissionDeniedFailure extends ScanFailure {
+  const CameraPermissionDeniedFailure([
+    super.message =
+        'Нет доступа к камере или галерее. Разрешите его в настройках.',
+  ]);
+}
+
+/// Не удалось загрузить фото или создать чек.
+class UploadFailure extends ScanFailure {
+  const UploadFailure([
+    super.message = 'Не удалось отправить чек. Попробуйте ещё раз.',
+  ]);
+}
+
+/// Нет соединения с сервером при сканировании.
+class ScanNetworkFailure extends ScanFailure {
+  const ScanNetworkFailure([super.message = 'Нет соединения с сервером']);
+}
+
+/// Непредвиденная ошибка сканирования.
+class UnknownScanFailure extends ScanFailure {
+  const UnknownScanFailure([super.message = 'Не удалось обработать чек']);
+}
