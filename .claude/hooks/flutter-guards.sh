@@ -15,6 +15,8 @@ case "$f" in
   */lib/features/*.dart)
     if [ -f "$f" ] && grep -nE 'Color\(0x|Colors\.[a-z]|TextStyle\(' "$f" >/dev/null 2>&1; then
       msg="Дизайн-система: в $f обнаружен хардкод цвета/стиля. Используйте токены темы (lib/core/theme/, Theme.of(context).colorScheme / .textTheme, ThemeExtension) вместо Colors.*, Color(0x..) и сырых TextStyle(. См. app/CLAUDE.md → «Дизайн-система»."
+    elif [ -f "$f" ] && grep -nE '\b(ElevatedButton|FilledButton|TextButton|OutlinedButton|TextField|Card|ListTile|FilterChip|Chip)\(' "$f" >/dev/null 2>&1; then
+      msg="Дизайн-система: в $f используется сырой Material-примитив. В lib/features/** берите компоненты из каталога lib/shared/components/ (AppButton, AppTextField, AppCard, AppListTile, AppChip, ...). См. docs/conventions/design-system.md."
     fi
     ;;
 esac
