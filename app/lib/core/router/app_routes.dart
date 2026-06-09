@@ -13,4 +13,10 @@ abstract final class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String checkEmail = '/check-email';
   static const String resetPassword = '/reset-password';
+
+  // Вкладки нижнего меню.
+  static const String receipts = '/receipts';
+  static const String statistics = '/statistics';
+  static const String scan = '/scan';
+  static const String profile = '/profile';
 }
