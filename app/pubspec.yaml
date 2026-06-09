@@ -40,6 +40,11 @@ dev_dependencies:
   freezed: ^2.5.7
   json_serializable: ^6.8.0
 
+dependency_overrides:
+  # analyzer_plugin 0.12.0 is incompatible with analyzer 7.6.0 (build_runner build script
+  # fails to compile). Override to 0.13.x which fixes the Element/Element2 type errors.
+  analyzer_plugin: ^0.13.4
+
 flutter:
   uses-material-design: true
   assets:

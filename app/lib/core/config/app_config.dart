@@ -11,4 +11,7 @@ class AppConfig {
 
   /// Базовая локаль по умолчанию.
   static const String defaultLocale = 'ru';
+
+  /// Deep-link для возврата из писем подтверждения/сброса пароля.
+  static const String authRedirectUrl = 'chekiprices://login-callback';
 }

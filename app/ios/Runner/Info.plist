@@ -45,6 +45,19 @@
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>chekiprices</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>chekiprices</string>
+			</array>
+		</dict>
+	</array>
 		<key>NSCameraUsageDescription</key>
 		<string>Приложение использует камеру для сканирования чеков</string>
 		<key>NSPhotoLibraryUsageDescription</key>
