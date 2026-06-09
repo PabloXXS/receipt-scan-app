@@ -22,9 +22,11 @@ import 'auth_redirect.dart';
 /// Провайдер корневого роутера приложения.
 final appRouterProvider = Provider<GoRouter>((ref) {
   final client = ref.watch(supabaseClientProvider);
+  final refreshStream = GoRouterRefreshStream(client.auth.onAuthStateChange);
+  ref.onDispose(refreshStream.dispose);
   return GoRouter(
     initialLocation: AppRoutes.signIn,
-    refreshListenable: GoRouterRefreshStream(client.auth.onAuthStateChange),
+    refreshListenable: refreshStream,
     redirect: (context, state) => authRedirect(
       isAuthenticated: client.auth.currentSession != null,
       location: state.matchedLocation,
