@@ -1,27 +1,40 @@
-/// Назначение: экран-заглушка раздела «Скан» (сканирование чека — в фиче scan позже).
+/// Назначение: экран раздела «Скан» — захват/предпросмотр/отправка фото чека.
 ///
 /// Слой: presentation
 /// Фича: scan
-/// Зависимости: shared/components.
+/// Зависимости: flutter, flutter_riverpod, shared/components,
+///   presentation/controllers/scan_controller.dart, presentation/widgets/*.
 /// Ключевые типы: ScanScreen.
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/components/components.dart';
+import '../controllers/scan_controller.dart';
+import '../widgets/scan_capture_view.dart';
+import '../widgets/scan_preview_view.dart';
+import '../widgets/scan_success_view.dart';
 
-/// Экран-заглушка сканирования чека.
-class ScanScreen extends StatelessWidget {
+/// Экран сканирования чека (фото). QR — отдельный цикл.
+class ScanScreen extends ConsumerWidget {
   const ScanScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const AppScaffold(
-      title: 'Сканировать',
-      body: AppEmptyState(
-        message: 'Сканирование QR и фото чека появится здесь.',
-        icon: Icons.qr_code_scanner,
-      ),
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(scanControllerProvider);
+
+    final body = switch (state) {
+      ScanIdle() => const ScanCaptureView(),
+      ScanPreview(:final photoBytes) => ScanPreviewView(photoBytes: photoBytes),
+      ScanSubmitting(:final photoBytes) =>
+        ScanPreviewView(photoBytes: photoBytes, submitting: true),
+      ScanSuccess() => const ScanSuccessView(),
+      ScanError(:final failure, :final photoBytes) => photoBytes == null
+          ? ScanCaptureView(error: failure.message)
+          : ScanPreviewView(photoBytes: photoBytes, error: failure.message),
+    };
+
+    return AppScaffold(title: 'Сканировать', body: body);
   }
 }
