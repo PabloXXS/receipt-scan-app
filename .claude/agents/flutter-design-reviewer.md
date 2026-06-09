@@ -21,6 +21,14 @@ color: cyan
 - **Отступы/радиусы/размеры** — из токенов (ThemeExtension), а не магические числа,
   разбросанные по виджетам.
 - Новые переиспользуемые виджеты живут в `lib/shared/`, а не дублируются по фичам.
+- **Каталог обязателен:** в `lib/features/**` UI-примитивы — только из
+  `lib/shared/components/` (`AppButton`, `AppTextField`, `AppCard`, `AppListTile`,
+  `AppChip`, `AppBadge`, `AppScaffold`, `AppEmptyState`, `AppErrorView`, `AppLoader`,
+  `MoneyText`, `PriceDeltaText`). Прямые `ElevatedButton/FilledButton/TextButton/
+  OutlinedButton/TextField/Card/ListTile/Chip` в фичах — нарушение.
+- **Новые компоненты** заводятся в `shared/components/` (с реэкспортом в `components.dart`
+  и widget-тестом), а не дублируются bespoke-версткой в фиче. Источник правил —
+  `docs/conventions/design-system.md`.
 
 ### 2. Material 3 и тема
 - Тема строится через `ColorScheme.fromSeed` (M3), `useMaterial3: true`.

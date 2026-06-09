@@ -29,6 +29,7 @@ dependencies:
   json_annotation: ^4.9.0
   fl_chart: ^0.69.0  # Интерактивные графики для аналитики
   intl: any  # Форматирование дат (из flutter_localizations)
+  google_fonts: ^8.1.0
 
 dev_dependencies:
   flutter_test:
