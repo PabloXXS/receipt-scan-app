@@ -44,8 +44,8 @@
 ## Автоматизации Claude Code (`.claude/`)
 
 - **MCP** (`.mcp.json`): `dart` (анализ/тесты/формат/pub/hot-reload), `supabase`
-  (схема, RLS, миграции), `context7` (живая документация — `use riverpod`/`use supabase`),
-  `github` (issues/PR/Actions; требует авторизации при первом запуске).
+  (схема, RLS, миграции), `context7` (живая документация — `use riverpod`/`use supabase`).
+- **GitHub:** через `gh` CLI (issues/PR/статусы и логи Actions), не через MCP.
 - **Скиллы:** `/flutter-feature <name>` — каркас фичи по конвенциям;
   `/supabase-migration <name>` — миграция с RLS по зонам A–D и проверкой зоны C.
 - **Субагенты:** `privacy-rls-reviewer` (приватность/RLS), `flutter-design-reviewer`
