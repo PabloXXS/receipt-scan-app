@@ -34,16 +34,22 @@
 
 ## Дизайн-система (правила)
 
-- **Единая тема** в `lib/core/theme/`. Палитра — `ColorScheme.fromSeed(...)`,
-  `useMaterial3: true`.
-- **Брендовые токены** (отступы, радиусы, кастомные цвета, длительности) — через
-  `ThemeExtension<T>`, доступ `Theme.of(context).extension<...>()`.
-- **В фичах и shared запрещено:** `Colors.*`, `Color(0xFF..)`, сырые `TextStyle(`,
-  магические числа отступов. Используй `Theme.of(context).colorScheme/.textTheme`
-  и токены-расширения. (Напоминание включено хуком `flutter-guards`.)
-- UI должен корректно работать в light/dark без хардкода.
-- Перенос макетов из Figma — через скиллы `figma-generate-design` / `figma-code-connect`
-  с привязкой к токенам, а не пиксельным хардкодом.
+Полные правила и каталог — `../docs/conventions/design-system.md`. Кратко:
+
+- **Единая тема** в `lib/core/theme/` (`AppTheme.light()/dark()`, `ColorScheme.fromSeed`,
+  Inter, `AppTokens` через `ThemeExtension`). Доступ: `context.tokens`, `colorScheme`, `textTheme`.
+- **Каталог компонентов** — `lib/shared/components/` (импорт `components.dart`).
+  В `lib/features/**` UI-примитивы берём ТОЛЬКО из каталога (`AppButton`, `AppTextField`,
+  `AppCard`, `AppListTile`, `AppChip`, `AppBadge`, `AppScaffold`, `AppEmptyState`,
+  `AppErrorView`, `AppLoader`, `MoneyText`, `PriceDeltaText`).
+- **Запрещено в фичах:** прямые `ElevatedButton/FilledButton/TextButton/OutlinedButton/
+  TextField/Card/ListTile/Chip`; `Colors.*`, `Color(0x..)`, сырые `TextStyle(`, магические
+  отступы/радиусы. Стоковый Material — только для разметки.
+- **Новый компонент** — только в `shared/components/` и только при повторе паттерна (≥2);
+  одноразовое — композиция существующих. (Напоминания включены хуком `flutter-guards`.)
+- UI обязан работать в light/dark.
+- Перенос макетов из Figma — через `figma-generate-design`/`figma-code-connect` с привязкой
+  к токенам, а не пиксельным хардкодом.
 
 ## Инструменты
 

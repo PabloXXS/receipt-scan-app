@@ -14,7 +14,9 @@ argument-hint: "<feature-name> (snake_case, напр. price_compare)"
    use-cases, Riverpod-провайдеры, RLS, взаимодействие с воркером. Это ТЗ фичи.
    Если файла нет — сначала создай его по шаблону из `docs/conventions/documentation.md`
    и согласуй с пользователем.
-2. `app/CLAUDE.md` и `docs/conventions/flutter.md` — слои, зависимости, codegen, именование.
+2. `app/CLAUDE.md`, `docs/conventions/flutter.md` и **`docs/conventions/design-system.md`** —
+   слои, зависимости, codegen, именование И каталог компонентов/правила дизайн-системы.
+   UI в фиче собираем из `lib/shared/components/`, а не из сырых Material-виджетов.
 3. Образец оформления — `app/lib/features/profile/domain/` (уже в репозитории).
 
 ## Шаг 1. Имя и расположение
