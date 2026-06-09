@@ -43,10 +43,14 @@ class ScanPreviewView extends ConsumerWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(tokens.radiusMd),
-              child: Image.memory(
-                photoBytes,
-                fit: BoxFit.contain,
-                width: double.infinity,
+              child: Semantics(
+                label: 'Предпросмотр фото чека',
+                image: true,
+                child: Image.memory(
+                  photoBytes,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                ),
               ),
             ),
           ),
