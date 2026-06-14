@@ -1178,11 +1178,18 @@ void main() {
     expect(state.hasMore, isFalse);
   });
 
-  test('ровно 25 чеков → hasMore=false уже после первой страницы', () async {
+  test('ровно 25 чеков: hasMore=true после первой страницы, false после пустой догрузки', () async {
+    // Offset-пагинация не может на первой странице отличить «ровно 25» от «есть ещё»:
+    // обе возвращают 25 строк. Конвенция: hasMore=true, пока страница полная;
+    // флаг сбрасывается, когда следующая догрузка вернёт меньше pageSize (тут — пусто).
     final c = _container(FakeReceiptsRepository(_receipts(25).cast()));
-    final state = await c.read(receiptsListControllerProvider.future);
-    expect(state.items.length, 25);
-    expect(state.hasMore, isFalse);
+    final first = await c.read(receiptsListControllerProvider.future);
+    expect(first.items.length, 25);
+    expect(first.hasMore, isTrue);
+    await c.read(receiptsListControllerProvider.notifier).loadMore();
+    final after = c.read(receiptsListControllerProvider).requireValue;
+    expect(after.items.length, 25);
+    expect(after.hasMore, isFalse);
   });
 
   test('deleteReceipt удаляет и перезапрашивает список', () async {
