@@ -127,4 +127,14 @@ void main() {
     final after = await c.read(receiptsListControllerProvider.future);
     expect(after.items.map((r) => r.id), contains('scanned-1'));
   });
+
+  test('save передаёт байты фото в репозиторий', () async {
+    final repo = FakeScanRepository();
+    final c = _c(repo: repo);
+    final n = c.read(scanControllerProvider.notifier);
+    await n.recognizePhoto(kValidPngBytes);
+    await n.save();
+    expect(repo.receivedPhotoBytes, isNotNull);
+    expect(repo.receivedPhotoBytes, same(kValidPngBytes));
+  });
 }

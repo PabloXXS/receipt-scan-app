@@ -71,8 +71,12 @@ class ScanController extends _$ScanController {
   @override
   ScanState build() => const ScanIdle();
 
+  /// Байты последнего распознанного фото (для загрузки при сохранении).
+  Uint8List? _photoBytes;
+
   /// Распознать готовый снимок (из живой камеры или галереи) → ревью.
   Future<void> recognizePhoto(Uint8List bytes) async {
+    _photoBytes = bytes;
     state = const ScanRecognizing();
     try {
       final ocr = await ref.read(receiptOcrEngineProvider).recognize(bytes);
@@ -112,8 +116,10 @@ class ScanController extends _$ScanController {
     if (draft == null) return;
     state = ScanSaving(draft);
     try {
-      final id =
-          await SaveScannedReceipt(ref.read(scanRepositoryProvider))(draft);
+      final id = await SaveScannedReceipt(ref.read(scanRepositoryProvider))(
+        draft,
+        photoBytes: _photoBytes,
+      );
       state = ScanSaved(id);
       // Список чеков кэшируется (экран жив в IndexedStack), поэтому после записи
       // инвалидируем его — иначе новый чек не появится без ручного refresh.
@@ -125,5 +131,8 @@ class ScanController extends _$ScanController {
   }
 
   /// Сброс к началу.
-  void reset() => state = const ScanIdle();
+  void reset() {
+    _photoBytes = null;
+    state = const ScanIdle();
+  }
 }
