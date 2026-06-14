@@ -16,8 +16,7 @@ const String kReceiptColumns =
     'photo_path, stores(name)';
 
 /// Колонки позиции чека.
-const String kReceiptItemColumns =
-    'id, raw_name, qty, unit_price, sum, created_at';
+const String kReceiptItemColumns = 'id, raw_name, qty, unit_price, sum';
 
 /// numeric из PostgREST может прийти как num или String — приводим к double.
 double? _toDouble(Object? v) {

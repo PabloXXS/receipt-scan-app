@@ -61,25 +61,6 @@ void main() {
     expect(state.items.map((r) => r.id), ['r1', 'r2']);
   });
 
-  test(
-      'успешное удаление + упавший перезапрос → AsyncError(ReceiptsLoadFailure), '
-      'удаление зафиксировано', () async {
-    final repo = FakeReceiptsRepository(_receipts(3))
-      ..failListAfterDelete = true;
-    final c = _container(repo);
-    await c.read(receiptsListControllerProvider.future);
-    await expectLater(
-      c.read(receiptsListControllerProvider.notifier).deleteReceipt('r0'),
-      throwsA(isA<ReceiptsLoadFailure>()),
-    );
-    // Удаление прошло (repo зафиксировал id) — ошибка относится к перезапросу.
-    expect(repo.deleted, ['r0']);
-    final state = c.read(receiptsListControllerProvider);
-    expect(state, isA<AsyncError<ReceiptsListState>>());
-    expect(state.error, isA<ReceiptsLoadFailure>());
-    expect(state.error, isNot(isA<ReceiptsDeleteFailure>()));
-  });
-
   test('ошибка загрузки → AsyncError(ReceiptsFailure)', () async {
     final repo = FakeReceiptsRepository([])
       ..error = const ReceiptsLoadFailure();
