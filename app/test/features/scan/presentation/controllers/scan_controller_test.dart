@@ -6,8 +6,11 @@ import 'package:ticket_app/features/scan/data/receipt_parser_impl.dart';
 import 'package:ticket_app/features/scan/data/repositories/scan_repository_impl.dart';
 import 'package:ticket_app/features/scan/data/vision_ocr_engine.dart';
 import 'package:ticket_app/features/scan/domain/entities/ocr_result.dart';
+import 'package:ticket_app/features/receipts/data/repositories/receipts_repository_impl.dart';
+import 'package:ticket_app/features/receipts/presentation/controllers/receipts_list_controller.dart';
 import 'package:ticket_app/features/scan/presentation/controllers/scan_controller.dart';
 
+import '../../../receipts/receipts_test_fakes.dart';
 import '../../prostore_ocr_fixture.dart';
 import '../../scan_test_fakes.dart';
 
@@ -93,5 +96,35 @@ void main() {
     final s = c.read(scanControllerProvider);
     expect(s, isA<ScanError>());
     expect((s as ScanError).draft, isNotNull);
+  });
+
+  test('save() инвалидирует список чеков → новый чек виден без ручного refresh',
+      () async {
+    final receiptsRepo = FakeReceiptsRepository([]);
+    final c = ProviderContainer(overrides: [
+      photoPickerProvider
+          .overrideWithValue(FakePhotoPicker()..result = kValidPngBytes),
+      receiptOcrEngineProvider.overrideWithValue(
+          FakeOcrEngine(const OcrResult(lines: prostoreOcrLines, qr: 'УИ'))),
+      receiptParserProvider.overrideWithValue(ReceiptParserImpl()),
+      scanRepositoryProvider.overrideWithValue(FakeScanRepository()),
+      receiptsRepositoryProvider.overrideWithValue(receiptsRepo),
+    ]);
+    addTearDown(c.dispose);
+    // Держим список «живым» — иначе autoDispose сам перезапросит данные при
+    // повторном чтении, и тест прошёл бы даже без инвалидации (ложный успех).
+    final sub = c.listen(receiptsListControllerProvider, (_, __) {});
+    addTearDown(sub.close);
+
+    final initial = await c.read(receiptsListControllerProvider.future);
+    expect(initial.items, isEmpty);
+
+    final n = c.read(scanControllerProvider.notifier);
+    await n.recognizePhoto(kValidPngBytes); // → ScanReview
+    receiptsRepo.all = [makeReceipt('scanned-1')]; // бэкенд теперь содержит чек
+    await n.save(); // → ScanSaved; должно инвалидировать список
+
+    final after = await c.read(receiptsListControllerProvider.future);
+    expect(after.items.map((r) => r.id), contains('scanned-1'));
   });
 }

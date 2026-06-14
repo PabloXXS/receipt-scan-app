@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
-import 'package:ticket_app/features/profile/data/avatar_image_processor.dart';
+import 'package:ticket_app/core/images/avatar_image_processor.dart';
 
 void main() {
   test('кропит до квадрата и ужимает до <= 512px', () {

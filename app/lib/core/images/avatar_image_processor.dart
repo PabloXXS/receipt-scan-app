@@ -1,7 +1,6 @@
 /// Назначение: подготовка изображения аватара (центр-кроп в квадрат, даунскейл, JPEG).
 ///
-/// Слой: data
-/// Фича: profile
+/// Слой: core/images
 /// Зависимости: dart:typed_data, package:image.
 /// Ключевые типы: processAvatar, kAvatarMaxSide.
 library;

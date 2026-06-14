@@ -15,6 +15,7 @@ import 'dart:typed_data';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../receipts/presentation/controllers/receipts_list_controller.dart';
 import '../../data/photo_picker.dart';
 import '../../data/receipt_parser_impl.dart';
 import '../../data/repositories/scan_repository_impl.dart';
@@ -114,6 +115,10 @@ class ScanController extends _$ScanController {
       final id =
           await SaveScannedReceipt(ref.read(scanRepositoryProvider))(draft);
       state = ScanSaved(id);
+      // Список чеков кэшируется (экран жив в IndexedStack), поэтому после записи
+      // инвалидируем его — иначе новый чек не появится без ручного refresh.
+      // Временная мера до Realtime-подписки на чеки (core/realtime/).
+      ref.invalidate(receiptsListControllerProvider);
     } catch (e) {
       state = ScanError(mapScanException(e), draft);
     }
