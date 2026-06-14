@@ -20,6 +20,9 @@ abstract final class AppRoutes {
   static const String scan = '/scan';
   static const String profile = '/profile';
 
+  /// Редактирование профиля (имя, аватар).
+  static const String editProfile = '/profile/edit';
+
   /// Шаблон маршрута деталей чека (вложен в ветку receipts).
   static const String receiptDetail = '/receipts/:id';
 
