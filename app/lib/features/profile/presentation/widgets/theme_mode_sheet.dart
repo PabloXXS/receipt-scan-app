@@ -2,13 +2,15 @@
 ///
 /// Слой: presentation
 /// Фича: profile
-/// Зависимости: flutter material, core/theme/app_tokens.dart.
+/// Зависимости: flutter material, core/theme/app_tokens.dart,
+///   shared/components/components.dart.
 /// Ключевые типы: showThemeModePicker.
 library;
 
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_tokens.dart';
+import '../../../../shared/components/components.dart';
 
 const Map<ThemeMode, String> _kThemeLabels = {
   ThemeMode.system: 'Системная',
@@ -23,11 +25,15 @@ Future<ThemeMode?> showThemeModePicker(
 }) {
   return showModalBottomSheet<ThemeMode>(
     context: context,
+    isScrollControlled: true,
     builder: (context) {
       final tokens = context.tokens;
       return SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: tokens.spaceMd),
+          padding: EdgeInsets.symmetric(
+            vertical: tokens.spaceMd,
+            horizontal: tokens.spaceMd,
+          ),
           child: RadioGroup<ThemeMode>(
             groupValue: current,
             onChanged: (v) => Navigator.of(context).pop(v),
@@ -35,9 +41,10 @@ Future<ThemeMode?> showThemeModePicker(
               mainAxisSize: MainAxisSize.min,
               children: [
                 for (final entry in _kThemeLabels.entries)
-                  RadioListTile<ThemeMode>(
-                    value: entry.key,
-                    title: Text(entry.value),
+                  AppListTile(
+                    title: entry.value,
+                    leading: Radio<ThemeMode>(value: entry.key),
+                    onTap: () => Navigator.of(context).pop(entry.key),
                   ),
               ],
             ),
