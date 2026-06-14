@@ -36,9 +36,6 @@ class FakePhotoPicker implements PhotoPicker {
   }
 
   @override
-  Future<Uint8List?> pickFromCamera() => _run();
-
-  @override
   Future<Uint8List?> pickFromGallery() => _run();
 }
 

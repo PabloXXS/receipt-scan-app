@@ -1,4 +1,4 @@
-/// Назначение: выбор фото чека с камеры/галереи (обёртка над image_picker).
+/// Назначение: выбор фото чека из галереи (обёртка над image_picker).
 ///
 /// Слой: data
 /// Фича: scan
@@ -11,9 +11,9 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-/// Абстракция выбора фото. `null` — пользователь отменил выбор.
+/// Абстракция выбора фото из галереи. `null` — пользователь отменил выбор.
+/// (Камера в приложении — через LiveCameraScreen, не через image_picker.)
 abstract interface class PhotoPicker {
-  Future<Uint8List?> pickFromCamera();
   Future<Uint8List?> pickFromGallery();
 }
 
@@ -29,9 +29,6 @@ class ImagePickerPhotoPicker implements PhotoPicker {
     if (file == null) return null;
     return file.readAsBytes();
   }
-
-  @override
-  Future<Uint8List?> pickFromCamera() => _pick(ImageSource.camera);
 
   @override
   Future<Uint8List?> pickFromGallery() => _pick(ImageSource.gallery);
