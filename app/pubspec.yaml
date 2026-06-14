@@ -19,7 +19,9 @@ dependencies:
   http: ^1.2.2
   supabase_flutter: ^2.5.6
   go_router: ^14.2.0
-  mobile_scanner: ^5.2.3  # QR/Barcode scanner
+  # mobile_scanner: ^5.2.3  # QR/Barcode scanner — временно отключён: GoogleMLKit не
+  # поддерживает arm64-симулятор (EXCLUDED_ARCHS ломает сборку под iOS-симулятор на
+  # Apple Silicon). Вернуть при реализации фичи скана (тогда — тест на устройстве/Rosetta).
   image: ^4.2.0
   currency_picker: ^2.0.19
   shared_preferences: ^2.3.2
@@ -30,6 +32,7 @@ dependencies:
   fl_chart: ^0.69.0  # Интерактивные графики для аналитики
   intl: any  # Форматирование дат (из flutter_localizations)
   google_fonts: ^8.1.0
+  camera: ^0.12.0+1
 
 dev_dependencies:
   flutter_test:
