@@ -39,13 +39,6 @@ class ScanCaptureView extends ConsumerWidget {
             ),
           SizedBox(height: tokens.spaceXl),
           AppButton(
-            label: 'Сфотографировать',
-            icon: Icons.photo_camera,
-            expanded: true,
-            onPressed: controller.pickFromCamera,
-          ),
-          SizedBox(height: tokens.spaceSm),
-          AppButton(
             label: 'Из галереи',
             icon: Icons.photo_library,
             variant: AppButtonVariant.secondary,

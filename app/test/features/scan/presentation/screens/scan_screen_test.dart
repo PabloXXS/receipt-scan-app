@@ -23,8 +23,8 @@ void main() {
       ],
     );
 
-    expect(find.text('Сфотографировать'), findsOneWidget);
-    await tester.tap(find.text('Сфотографировать'));
+    expect(find.text('Из галереи'), findsOneWidget);
+    await tester.tap(find.text('Из галереи'));
     await tester.pumpAndSettle();
 
     expect(find.text('Сохранить'), findsOneWidget);

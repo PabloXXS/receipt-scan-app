@@ -33,12 +33,31 @@ void main() {
     expect(_c().read(scanControllerProvider), isA<ScanIdle>());
   });
 
-  test('pickFromCamera → распознавание → ScanReview с 14 позициями', () async {
+  test('recognizePhoto → ScanReview с 14 позициями', () async {
     final c = _c();
-    await c.read(scanControllerProvider.notifier).pickFromCamera();
+    await c
+        .read(scanControllerProvider.notifier)
+        .recognizePhoto(kValidPngBytes);
     final s = c.read(scanControllerProvider);
     expect(s, isA<ScanReview>());
     expect((s as ScanReview).draft.items.length, 14);
+  });
+
+  test('ошибка движка OCR → ScanError', () async {
+    final c = _c(
+      engine:
+          FakeOcrEngine(const OcrResult(lines: []), error: Exception('boom')),
+    );
+    await c
+        .read(scanControllerProvider.notifier)
+        .recognizePhoto(kValidPngBytes);
+    expect(c.read(scanControllerProvider), isA<ScanError>());
+  });
+
+  test('pickFromGallery с фото → ScanReview', () async {
+    final c = _c(picker: FakePhotoPicker()..result = kValidPngBytes);
+    await c.read(scanControllerProvider.notifier).pickFromGallery();
+    expect(c.read(scanControllerProvider), isA<ScanReview>());
   });
 
   test('отмена выбора (null) → остаётся ScanIdle', () async {
@@ -50,7 +69,7 @@ void main() {
   test('removeItem убирает позицию из ревью', () async {
     final c = _c();
     final n = c.read(scanControllerProvider.notifier);
-    await n.pickFromCamera();
+    await n.recognizePhoto(kValidPngBytes);
     n.removeItem(0);
     expect(
         (c.read(scanControllerProvider) as ScanReview).draft.items.length, 13);
@@ -59,17 +78,17 @@ void main() {
   test('save → ScanSaved с id', () async {
     final c = _c(repo: FakeScanRepository()..receiptId = 'rid-5');
     final n = c.read(scanControllerProvider.notifier);
-    await n.pickFromCamera();
+    await n.recognizePhoto(kValidPngBytes);
     await n.save();
     final s = c.read(scanControllerProvider);
     expect(s, isA<ScanSaved>());
     expect((s as ScanSaved).receiptId, 'rid-5');
   });
 
-  test('ошибка сохранения → ScanError с сохранённым draft', () async {
+  test('ошибка сохранения → ScanError с draft', () async {
     final c = _c(repo: FakeScanRepository()..error = const UploadFailure());
     final n = c.read(scanControllerProvider.notifier);
-    await n.pickFromCamera();
+    await n.recognizePhoto(kValidPngBytes);
     await n.save();
     final s = c.read(scanControllerProvider);
     expect(s, isA<ScanError>());

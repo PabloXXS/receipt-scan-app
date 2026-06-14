@@ -42,10 +42,14 @@ class FakePhotoPicker implements PhotoPicker {
   Future<Uint8List?> pickFromGallery() => _run();
 }
 
-/// Фейк движка OCR — отдаёт заранее заданный результат.
+/// Фейк движка OCR — отдаёт заранее заданный результат или кидает [error].
 class FakeOcrEngine implements ReceiptOcrEngine {
-  FakeOcrEngine(this.result);
+  FakeOcrEngine(this.result, {this.error});
   final OcrResult result;
+  final Object? error;
   @override
-  Future<OcrResult> recognize(Uint8List photoBytes) async => result;
+  Future<OcrResult> recognize(Uint8List photoBytes) async {
+    if (error != null) throw error!;
+    return result;
+  }
 }

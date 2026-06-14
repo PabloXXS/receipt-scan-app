@@ -70,20 +70,28 @@ class ScanController extends _$ScanController {
   @override
   ScanState build() => const ScanIdle();
 
-  Future<void> pickFromCamera() => _capture((p) => p.pickFromCamera());
-  Future<void> pickFromGallery() => _capture((p) => p.pickFromGallery());
-
-  Future<void> _capture(Future<Uint8List?> Function(PhotoPicker) pick) async {
+  /// Распознать готовый снимок (из живой камеры или галереи) → ревью.
+  Future<void> recognizePhoto(Uint8List bytes) async {
+    state = const ScanRecognizing();
     try {
-      final bytes = await pick(ref.read(photoPickerProvider));
-      if (bytes == null) return; // отмена
-      state = const ScanRecognizing();
       final ocr = await ref.read(receiptOcrEngineProvider).recognize(bytes);
-      final draft = ref.read(receiptParserProvider).parse(ocr);
-      state = ScanReview(draft);
+      state = ScanReview(ref.read(receiptParserProvider).parse(ocr));
     } catch (e) {
       state = ScanError(mapScanException(e));
     }
+  }
+
+  /// Выбрать фото из галереи и распознать.
+  Future<void> pickFromGallery() async {
+    Uint8List? bytes;
+    try {
+      bytes = await ref.read(photoPickerProvider).pickFromGallery();
+    } catch (e) {
+      state = ScanError(mapScanException(e));
+      return;
+    }
+    if (bytes == null) return; // отмена
+    await recognizePhoto(bytes);
   }
 
   /// Удалить ошибочную позицию из текущего ревью.
