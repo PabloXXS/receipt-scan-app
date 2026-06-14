@@ -8,7 +8,8 @@ void main() {
   final parser = ReceiptParserImpl();
 
   test('извлекает 14 позиций чека ProStore', () {
-    final d = parser.parse(OcrResult(lines: prostoreOcrLines, qr: '2B08...'));
+    final d =
+        parser.parse(const OcrResult(lines: prostoreOcrLines, qr: '2B08...'));
     expect(d.items.length, 14);
   });
 

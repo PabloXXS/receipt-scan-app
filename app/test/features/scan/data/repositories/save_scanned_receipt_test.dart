@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:ticket_app/core/error/failure.dart';
@@ -10,15 +8,6 @@ import 'package:ticket_app/features/scan/domain/entities/receipt_draft.dart';
 class _FakeDs implements ScanRemoteDataSource {
   Object? error;
   ReceiptDraft? saved;
-  @override
-  String get currentUserId => 'u1';
-  @override
-  Future<void> uploadPhoto(
-      {required String path, required Uint8List bytes}) async {}
-  @override
-  Future<String> insertReceipt(
-          {required String source, required String photoPath}) async =>
-      'x';
   @override
   Future<String> insertReceiptWithItems(ReceiptDraft draft) async {
     saved = draft;
