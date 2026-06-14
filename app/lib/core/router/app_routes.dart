@@ -19,4 +19,10 @@ abstract final class AppRoutes {
   static const String statistics = '/statistics';
   static const String scan = '/scan';
   static const String profile = '/profile';
+
+  /// Шаблон маршрута деталей чека (вложен в ветку receipts).
+  static const String receiptDetail = '/receipts/:id';
+
+  /// Путь к деталям конкретного чека.
+  static String receiptDetailPath(String id) => '/receipts/$id';
 }

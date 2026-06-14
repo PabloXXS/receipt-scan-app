@@ -15,6 +15,7 @@ import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/receipts/presentation/screens/receipt_details_screen.dart';
 import '../../features/receipts/presentation/screens/receipts_screen.dart';
 import '../../features/scan/presentation/screens/scan_screen.dart';
 import '../../features/statistics/presentation/screens/statistics_screen.dart';
@@ -72,6 +73,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.receipts,
                 builder: (context, state) => const ReceiptsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) => ReceiptDetailsScreen(
+                      id: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
