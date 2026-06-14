@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ticket_app/core/error/failure.dart';
 import 'package:ticket_app/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:ticket_app/features/profile/presentation/controllers/profile_controller.dart';
 
@@ -51,5 +52,19 @@ void main() {
     await c.read(profileControllerProvider.future);
     await c.read(profileControllerProvider.notifier).updateAvatar(Uint8List(0));
     expect(c.read(profileControllerProvider).requireValue.avatarUrl, isNotNull);
+  });
+
+  test('ошибка мутации сохраняет предыдущий профиль и пробрасывается',
+      () async {
+    final repo = FakeProfileRepository(makeProfile());
+    final c = makeContainer(repo);
+    await c.read(profileControllerProvider.future);
+    repo.error = const ProfileSaveFailure();
+    await expectLater(
+      c.read(profileControllerProvider.notifier).updateName('Боря'),
+      throwsA(isA<ProfileSaveFailure>()),
+    );
+    final state = c.read(profileControllerProvider);
+    expect(state.valueOrNull?.displayName, 'Аня'); // прежний профиль сохранён
   });
 }

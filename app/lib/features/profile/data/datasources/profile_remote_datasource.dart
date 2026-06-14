@@ -3,7 +3,8 @@
 /// Слой: data
 /// Фича: profile
 /// Зависимости: dart:typed_data, flutter_riverpod, supabase_flutter,
-///   core/supabase/supabase_providers.dart, models/profile_dto.dart, domain/entities.
+///   core/supabase/supabase_providers.dart, core/error/failure.dart,
+///   models/profile_dto.dart, domain/entities.
 /// Ключевые типы: ProfileRemoteDataSource, SupabaseProfileRemoteDataSource,
 ///   profileRemoteDataSourceProvider.
 library;
@@ -13,6 +14,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/error/failure.dart';
 import '../../../../core/supabase/supabase_providers.dart';
 import '../../domain/entities/profile.dart';
 import '../models/profile_dto.dart';
@@ -33,7 +35,13 @@ class SupabaseProfileRemoteDataSource implements ProfileRemoteDataSource {
   final SupabaseClient _client;
   static const String _bucket = 'avatars';
 
-  String get _uid => _client.auth.currentUser!.id;
+  String get _uid {
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) {
+      throw const ProfileNetworkFailure('Пользователь не авторизован');
+    }
+    return uid;
+  }
 
   @override
   Future<Profile> fetchCurrent() async {
@@ -80,7 +88,11 @@ class SupabaseProfileRemoteDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<Profile> removeAvatar() async {
-    await _client.storage.from(_bucket).remove(['$_uid/avatar.jpg']);
+    try {
+      await _client.storage.from(_bucket).remove(['$_uid/avatar.jpg']);
+    } on StorageException {
+      // Файл мог отсутствовать — всё равно очищаем avatar_url.
+    }
     return _patch({'avatar_url': null});
   }
 }

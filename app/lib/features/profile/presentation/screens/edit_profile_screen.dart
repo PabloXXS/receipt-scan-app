@@ -3,18 +3,19 @@
 /// Слой: presentation
 /// Фича: profile
 /// Зависимости: flutter material, flutter_riverpod, image_picker,
-///   core/theme/app_tokens.dart, shared/components, data (avatar_image_processor),
-///   presentation/controllers/profile_controller.dart.
+///   core/theme/app_tokens.dart, core/images/avatar_image_processor.dart,
+///   shared/components, presentation/controllers/profile_controller.dart.
 /// Ключевые типы: EditProfileScreen.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/images/avatar_image_processor.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../shared/components/components.dart';
-import '../../data/avatar_image_processor.dart';
 import '../controllers/profile_controller.dart';
 
 /// Редактирование имени и аватара текущего пользователя.
@@ -49,7 +50,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _busy = true);
     try {
       final raw = await file.readAsBytes();
-      final processed = processAvatar(raw);
+      final processed = await compute(processAvatar, raw);
       await ref
           .read(profileControllerProvider.notifier)
           .updateAvatar(processed);

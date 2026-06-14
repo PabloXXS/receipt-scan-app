@@ -26,7 +26,12 @@ class ProfileController extends _$ProfileController {
 
   Future<void> _mutate(Future<Profile> Function() action) async {
     state = const AsyncLoading<Profile>().copyWithPrevious(state);
-    state = await AsyncValue.guard(action);
+    try {
+      state = AsyncData(await action());
+    } catch (e, st) {
+      state = AsyncError<Profile>(e, st).copyWithPrevious(state);
+      rethrow;
+    }
   }
 
   /// Меняет отображаемое имя.
