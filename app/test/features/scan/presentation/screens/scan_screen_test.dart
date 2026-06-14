@@ -1,37 +1,36 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ticket_app/features/scan/data/photo_picker.dart';
 import 'package:ticket_app/features/scan/data/repositories/scan_repository_impl.dart';
+import 'package:ticket_app/features/scan/data/vision_ocr_engine.dart';
+import 'package:ticket_app/features/scan/domain/entities/ocr_result.dart';
 import 'package:ticket_app/features/scan/presentation/screens/scan_screen.dart';
 
+import '../../prostore_ocr_fixture.dart';
 import '../../scan_test_fakes.dart';
 import '../../../../helpers/pump_app.dart';
 
 void main() {
-  testWidgets('захват → превью → отправка → успех', (tester) async {
-    final picker = FakePhotoPicker()..result = kValidPngBytes;
-    final repo = FakeScanRepository();
-
+  testWidgets('захват → ревью позиций → сохранение', (tester) async {
     await pumpApp(
       tester,
       const ScanScreen(),
       overrides: [
-        photoPickerProvider.overrideWithValue(picker),
-        scanRepositoryProvider.overrideWithValue(repo),
+        photoPickerProvider
+            .overrideWithValue(FakePhotoPicker()..result = kValidPngBytes),
+        receiptOcrEngineProvider.overrideWithValue(
+            FakeOcrEngine(const OcrResult(lines: prostoreOcrLines, qr: 'УИ'))),
+        scanRepositoryProvider.overrideWithValue(FakeScanRepository()),
       ],
     );
 
-    // Экран захвата.
     expect(find.text('Сфотографировать'), findsOneWidget);
-    expect(find.text('Из галереи'), findsOneWidget);
-
-    // Выбор фото → превью.
     await tester.tap(find.text('Сфотографировать'));
     await tester.pumpAndSettle();
-    expect(find.text('Отправить'), findsOneWidget);
-    expect(find.text('Переснять'), findsOneWidget);
 
-    // Отправка → успех.
-    await tester.tap(find.text('Отправить'));
+    expect(find.text('Сохранить'), findsOneWidget);
+    expect(find.text('Итого'), findsOneWidget);
+
+    await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
     expect(find.text('Сканировать ещё'), findsOneWidget);
   });
