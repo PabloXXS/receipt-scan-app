@@ -38,6 +38,10 @@ class ReceiptDraft {
   /// Сумма распознанных позиций.
   double get itemsSum => items.fold(0, (acc, it) => acc + it.sum);
 
+  /// Итог для сохранения: печатный [total], а если его нет — сумма позиций.
+  /// `null`, только если нет ни печатного итога, ни позиций.
+  double? get effectiveTotal => total ?? (items.isEmpty ? null : itemsSum);
+
   /// Сходится ли сумма позиций с печатным итогом (с копеечной погрешностью).
   bool get totalMatches => total != null && (itemsSum - total!).abs() < 0.01;
 

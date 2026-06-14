@@ -20,6 +20,22 @@ void main() {
     expect(draft().totalMatches, isTrue);
   });
 
+  test('effectiveTotal: печатный итог в приоритете', () {
+    expect(draft().effectiveTotal, 5);
+  });
+
+  test('effectiveTotal: без печатного итога — сумма позиций', () {
+    const d = ReceiptDraft(items: [
+      ReceiptItemDraft(rawName: 'A', qty: 1, unitPrice: 2, sum: 2),
+      ReceiptItemDraft(rawName: 'B', qty: 1, unitPrice: 3, sum: 3),
+    ]);
+    expect(d.effectiveTotal, 5);
+  });
+
+  test('effectiveTotal: ни итога, ни позиций → null', () {
+    expect(const ReceiptDraft(items: []).effectiveTotal, isNull);
+  });
+
   test('removeItemAt возвращает новый draft без позиции', () {
     final d = draft().removeItemAt(0);
     expect(d.items.length, 1);

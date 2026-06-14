@@ -22,7 +22,8 @@ UPDATE у `receipts` запрещён RLS, поэтому путь нельзя 
 (итог, удаление строки свайпом, «Сохранить»/«Отмена»), экран успеха.
 
 ## Задействованные сущности БД
-`receipts` (insert: `status = done`, `source = ocr`, `qr_raw` = УИ, `total`,
+`receipts` (insert: `status = done`, `source = ocr`, `qr_raw` = УИ, `total`
+(`ReceiptDraft.effectiveTotal` — печатный итог OCR, иначе сумма позиций),
 `purchased_at`; `country_code`/`family_id`/`currency` — триггером),
 `receipt_items` (позиции: `raw_name`, `qty`, `unit_price`, `sum`).
 

@@ -57,7 +57,7 @@ class SupabaseScanRemoteDataSource implements ScanRemoteDataSource {
           'source': ScanSource.ocr.dbValue,
           'qr_raw': draft.qrRaw,
           'status': 'done',
-          'total': draft.total,
+          'total': draft.effectiveTotal,
           'purchased_at': draft.purchasedAt?.toIso8601String(),
           'photo_path': photoPath,
         })
