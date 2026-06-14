@@ -27,6 +27,12 @@ final currentSessionProvider = Provider<Session?>((ref) {
   return state.valueOrNull?.session ?? client.auth.currentSession;
 });
 
+/// Email текущего пользователя (или null).
+final currentUserEmailProvider = Provider<String?>((ref) {
+  ref.watch(authStateChangesProvider);
+  return ref.watch(supabaseClientProvider).auth.currentUser?.email;
+});
+
 /// Адаптер `Stream` → `Listenable` для `GoRouter.refreshListenable`.
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
