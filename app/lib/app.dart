@@ -14,6 +14,7 @@ import 'core/auth/auth_providers.dart';
 import 'core/router/app_router.dart';
 import 'core/router/app_routes.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_mode_controller.dart';
 
 /// Корневой виджет приложения.
 class ChekiPricesApp extends ConsumerStatefulWidget {
@@ -43,11 +44,12 @@ class _ChekiPricesAppState extends ConsumerState<ChekiPricesApp> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeControllerProvider);
     return MaterialApp.router(
       title: 'ChekiPrices',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: _router,
     );
   }
