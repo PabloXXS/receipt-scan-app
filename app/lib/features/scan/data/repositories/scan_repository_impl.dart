@@ -42,9 +42,12 @@ class ScanRepositoryImpl implements ScanRepository {
   }
 
   @override
-  Future<String> saveScannedReceipt(ReceiptDraft draft) {
-    // TODO(scan-ocr): реализовать сохранение ReceiptDraft через datasource.
-    throw UnimplementedError('saveScannedReceipt');
+  Future<String> saveScannedReceipt(ReceiptDraft draft) async {
+    try {
+      return await _ds.insertReceiptWithItems(draft);
+    } catch (e) {
+      throw mapScanException(e);
+    }
   }
 }
 

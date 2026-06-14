@@ -6,6 +6,8 @@ import 'package:ticket_app/core/error/failure.dart';
 import 'package:ticket_app/features/scan/data/datasources/scan_remote_datasource.dart';
 import 'package:ticket_app/features/scan/data/repositories/scan_repository_impl.dart';
 
+import 'package:ticket_app/features/scan/domain/entities/receipt_draft.dart';
+
 import '../../scan_test_fakes.dart';
 
 class FakeScanRemoteDataSource implements ScanRemoteDataSource {
@@ -35,6 +37,11 @@ class FakeScanRemoteDataSource implements ScanRemoteDataSource {
     calls.add('insert:$source:$photoPath');
     if (insertError != null) throw insertError!;
     return 'rid-1';
+  }
+
+  @override
+  Future<String> insertReceiptWithItems(ReceiptDraft draft) async {
+    throw UnimplementedError();
   }
 }
 
