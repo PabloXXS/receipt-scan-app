@@ -94,3 +94,33 @@ class ScanNetworkFailure extends ScanFailure {
 class UnknownScanFailure extends ScanFailure {
   const UnknownScanFailure([super.message = 'Не удалось обработать чек']);
 }
+
+/// Базовая ошибка работы со списком/деталями чеков (показывается `message`).
+sealed class ReceiptsFailure extends Failure {
+  const ReceiptsFailure(super.message);
+}
+
+/// Нет соединения с сервером при загрузке чеков.
+class ReceiptsNetworkFailure extends ReceiptsFailure {
+  const ReceiptsNetworkFailure([super.message = 'Нет соединения с сервером']);
+}
+
+/// Не удалось загрузить чеки.
+class ReceiptsLoadFailure extends ReceiptsFailure {
+  const ReceiptsLoadFailure([
+    super.message = 'Не удалось загрузить чеки. Попробуйте ещё раз.',
+  ]);
+}
+
+/// Не удалось удалить чек.
+class ReceiptsDeleteFailure extends ReceiptsFailure {
+  const ReceiptsDeleteFailure([
+    super.message = 'Не удалось удалить чек. Попробуйте ещё раз.',
+  ]);
+}
+
+/// Непредвиденная ошибка при работе с чеками.
+class UnknownReceiptsFailure extends ReceiptsFailure {
+  const UnknownReceiptsFailure(
+      [super.message = 'Не удалось обработать запрос']);
+}
