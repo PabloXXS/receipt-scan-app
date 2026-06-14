@@ -124,3 +124,39 @@ class UnknownReceiptsFailure extends ReceiptsFailure {
   const UnknownReceiptsFailure(
       [super.message = 'Не удалось обработать запрос']);
 }
+
+/// Базовая ошибка работы с профилем (показывается `message`).
+sealed class ProfileFailure extends Failure {
+  const ProfileFailure(super.message);
+}
+
+/// Нет соединения с сервером при работе с профилем.
+class ProfileNetworkFailure extends ProfileFailure {
+  const ProfileNetworkFailure([super.message = 'Нет соединения с сервером']);
+}
+
+/// Не удалось загрузить профиль.
+class ProfileLoadFailure extends ProfileFailure {
+  const ProfileLoadFailure([
+    super.message = 'Не удалось загрузить профиль. Попробуйте ещё раз.',
+  ]);
+}
+
+/// Не удалось сохранить профиль.
+class ProfileSaveFailure extends ProfileFailure {
+  const ProfileSaveFailure([
+    super.message = 'Не удалось сохранить изменения. Попробуйте ещё раз.',
+  ]);
+}
+
+/// Не удалось загрузить аватар.
+class ProfileAvatarFailure extends ProfileFailure {
+  const ProfileAvatarFailure([
+    super.message = 'Не удалось обновить аватар. Попробуйте ещё раз.',
+  ]);
+}
+
+/// Непредвиденная ошибка при работе с профилем.
+class UnknownProfileFailure extends ProfileFailure {
+  const UnknownProfileFailure([super.message = 'Не удалось обработать запрос']);
+}

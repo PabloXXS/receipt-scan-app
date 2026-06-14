@@ -2,18 +2,28 @@
 ///
 /// Слой: domain
 /// Фича: profile
-/// Зависимости: domain/entities/profile.dart.
+/// Зависимости: dart:typed_data, domain/entities/profile.dart.
 /// Ключевые типы: ProfileRepository.
-/// Заглушка: реализация — в data-слое в итерации фичи profile.
 library;
+
+import 'dart:typed_data';
 
 import '../entities/profile.dart';
 
 /// Контракт репозитория профиля.
 abstract interface class ProfileRepository {
-  /// Возвращает профиль текущего пользователя.
+  /// Профиль текущего пользователя.
   Future<Profile> getCurrent();
 
-  /// Сохраняет изменённый профиль.
-  Future<void> update(Profile profile);
+  /// Обновляет отображаемое имя, возвращает обновлённый профиль.
+  Future<Profile> updateName(String displayName);
+
+  /// Меняет страну (country_code), возвращает обновлённый профиль.
+  Future<Profile> setCountry(String countryCode);
+
+  /// Загружает аватар (готовые jpeg-байты), возвращает профиль с avatar_url.
+  Future<Profile> updateAvatar(Uint8List bytes);
+
+  /// Удаляет аватар, возвращает профиль без avatar_url.
+  Future<Profile> removeAvatar();
 }
