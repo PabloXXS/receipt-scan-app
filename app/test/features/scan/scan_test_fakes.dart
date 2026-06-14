@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:ticket_app/features/scan/data/photo_picker.dart';
+import 'package:ticket_app/features/scan/domain/entities/receipt_draft.dart';
 import 'package:ticket_app/features/scan/domain/repositories/scan_repository.dart';
 
 /// Валидный 1×1 PNG — для Image.memory в widget-тестах и как «байты фото».
@@ -19,6 +20,12 @@ class FakeScanRepository implements ScanRepository {
   @override
   Future<String> createReceiptFromPhoto(Uint8List photoBytes) async {
     lastBytes = photoBytes;
+    if (error != null) throw error!;
+    return receiptId;
+  }
+
+  @override
+  Future<String> saveScannedReceipt(ReceiptDraft draft) async {
     if (error != null) throw error!;
     return receiptId;
   }

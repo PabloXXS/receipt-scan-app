@@ -12,6 +12,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/receipt_draft.dart';
 import '../../domain/entities/scan_source.dart';
 import '../../domain/repositories/scan_repository.dart';
 import '../datasources/scan_remote_datasource.dart';
@@ -38,6 +39,12 @@ class ScanRepositoryImpl implements ScanRepository {
     } catch (e) {
       throw mapScanException(e);
     }
+  }
+
+  @override
+  Future<String> saveScannedReceipt(ReceiptDraft draft) {
+    // TODO(scan-ocr): реализовать сохранение ReceiptDraft через datasource.
+    throw UnimplementedError('saveScannedReceipt');
   }
 }
 
