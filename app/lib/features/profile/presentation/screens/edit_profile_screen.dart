@@ -17,9 +17,6 @@ import '../../../../shared/components/components.dart';
 import '../../data/avatar_image_processor.dart';
 import '../controllers/profile_controller.dart';
 
-/// Радиус аватара на экране редактирования профиля.
-const double _kAvatarRadius = 48;
-
 /// Редактирование имени и аватара текущего пользователя.
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -67,6 +64,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _busy = true);
     try {
       await ref.read(profileControllerProvider.notifier).removeAvatar();
+    } catch (_) {
+      _showError('Не удалось удалить аватар');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -106,16 +105,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(
-              child: CircleAvatar(
-                radius: _kAvatarRadius,
-                backgroundColor: scheme.primaryContainer,
-                foregroundImage: profile?.avatarUrl != null
-                    ? NetworkImage(profile!.avatarUrl!)
-                    : null,
-                child: profile?.avatarUrl == null
-                    ? Icon(Icons.person_outline,
-                        color: scheme.onPrimaryContainer)
-                    : null,
+              child: Semantics(
+                button: true,
+                label: 'Сменить фото',
+                child: GestureDetector(
+                  onTap: _busy ? null : _pickAvatar,
+                  child: CircleAvatar(
+                    radius: tokens.avatarRadiusLg,
+                    backgroundColor: scheme.primaryContainer,
+                    foregroundImage: profile?.avatarUrl != null
+                        ? NetworkImage(profile!.avatarUrl!)
+                        : null,
+                    child: profile?.avatarUrl == null
+                        ? Icon(Icons.person_outline,
+                            color: scheme.onPrimaryContainer)
+                        : null,
+                  ),
+                ),
               ),
             ),
             SizedBox(height: tokens.spaceMd),

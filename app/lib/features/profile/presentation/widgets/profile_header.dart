@@ -13,8 +13,6 @@ import '../../../../core/theme/app_tokens.dart';
 import '../../../../shared/components/components.dart';
 import '../../domain/entities/profile.dart';
 
-const double _kAvatarRadius = 24;
-
 /// Карточка с аватаром, именем и email пользователя.
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({
@@ -42,7 +40,7 @@ class ProfileHeader extends StatelessWidget {
       child: Row(
         children: [
           CircleAvatar(
-            radius: _kAvatarRadius,
+            radius: tokens.avatarRadiusSm,
             backgroundColor: scheme.primaryContainer,
             foregroundImage: profile.avatarUrl != null
                 ? NetworkImage(profile.avatarUrl!)

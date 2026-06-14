@@ -26,6 +26,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.radiusMd,
     required this.radiusLg,
     required this.radiusPill,
+    required this.avatarRadiusSm,
+    required this.avatarRadiusLg,
     required this.durationFast,
     required this.durationNormal,
     required this.success,
@@ -45,6 +47,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   final double radiusMd;
   final double radiusLg;
   final double radiusPill;
+
+  /// Радиус аватара компактного размера (список, шапка).
+  final double avatarRadiusSm;
+
+  /// Радиус аватара крупного размера (экран редактирования профиля).
+  final double avatarRadiusLg;
 
   final Duration durationFast;
   final Duration durationNormal;
@@ -66,6 +74,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     radiusMd: 12,
     radiusLg: 16,
     radiusPill: 999,
+    avatarRadiusSm: 24,
+    avatarRadiusLg: 48,
     durationFast: Duration(milliseconds: 150),
     durationNormal: Duration(milliseconds: 250),
     success: AppColors.successLight,
@@ -86,6 +96,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     radiusMd: 12,
     radiusLg: 16,
     radiusPill: 999,
+    avatarRadiusSm: 24,
+    avatarRadiusLg: 48,
     durationFast: Duration(milliseconds: 150),
     durationNormal: Duration(milliseconds: 250),
     success: AppColors.successDark,
@@ -106,6 +118,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     double? radiusMd,
     double? radiusLg,
     double? radiusPill,
+    double? avatarRadiusSm,
+    double? avatarRadiusLg,
     Duration? durationFast,
     Duration? durationNormal,
     Color? success,
@@ -124,6 +138,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
       radiusMd: radiusMd ?? this.radiusMd,
       radiusLg: radiusLg ?? this.radiusLg,
       radiusPill: radiusPill ?? this.radiusPill,
+      avatarRadiusSm: avatarRadiusSm ?? this.avatarRadiusSm,
+      avatarRadiusLg: avatarRadiusLg ?? this.avatarRadiusLg,
       durationFast: durationFast ?? this.durationFast,
       durationNormal: durationNormal ?? this.durationNormal,
       success: success ?? this.success,
@@ -147,6 +163,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
       radiusMd: lerpDouble(radiusMd, other.radiusMd, t)!,
       radiusLg: lerpDouble(radiusLg, other.radiusLg, t)!,
       radiusPill: lerpDouble(radiusPill, other.radiusPill, t)!,
+      avatarRadiusSm: lerpDouble(avatarRadiusSm, other.avatarRadiusSm, t)!,
+      avatarRadiusLg: lerpDouble(avatarRadiusLg, other.avatarRadiusLg, t)!,
       durationFast: t < 0.5 ? durationFast : other.durationFast,
       durationNormal: t < 0.5 ? durationNormal : other.durationNormal,
       success: Color.lerp(success, other.success, t)!,
