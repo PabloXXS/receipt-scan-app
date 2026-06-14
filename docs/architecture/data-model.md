@@ -22,6 +22,12 @@ RLS: доступ по `auth.uid() = user_id` (для чеков расшире�
 > (постановка `{receipt_id}` в очередь `pgmq` `receipts_processing`). RLS пока только
 > по `user_id = auth.uid()` — семейное правило добавится в family-цикле.
 
+> `receipt_items` создан миграцией `0003`; `product_id` без FK (products зоны B ещё нет),
+> есть `created_at`/`updated_at`. Заполняется клиентским OCR-путём (insert при сохранении
+> скана; триггер `receipt_items_fill_owner` ставит `user_id`/`family_id`). insert-RLS
+> дополнительно проверяет владение чеком. `receipts.currency` проставляется триггером
+> `receipts_fill_owner` из `country_code` (BY→BYN, RU→RUB, KZ→KZT).
+
 ## Зона B — общий справочник
 RLS: `select` для всех авторизованных; `insert/update` — только service role (воркер).
 

@@ -5,38 +5,46 @@
 и создание «сырого» чека в `receipts`.
 
 ## Пользовательские сценарии
-- Сканировать QR → создать `receipt` (`source = qr`).
-- Сфотографировать чек → залить фото → создать `receipt` (`source = ocr`).
+- Сфотографировать чек (камера/галерея) → OCR распознаёт позиции и QR (УИ) →
+  ревью → сохранить `receipt` (`source = ocr`, `status = done`) с позициями.
 
 ## Экраны / UI
-Экран сканера (камера/QR), предпросмотр фото, индикатор отправки.
+Экран захвата (камера/галерея), индикатор распознавания, экран-ревью позиций
+(итог, удаление строки свайпом, «Сохранить»/«Отмена»), экран успеха.
 
 ## Задействованные сущности БД
-`receipts` (insert: `status = pending`, `source`, `country_code` из профиля,
-`qr_raw` или `photo_path`).
+`receipts` (insert: `status = done`, `source = ocr`, `qr_raw` = УИ, `total`,
+`purchased_at`; `country_code`/`family_id`/`currency` — триггером),
+`receipt_items` (позиции: `raw_name`, `qty`, `unit_price`, `sum`).
 
 ## Репозитории и use-cases
-`ScanRepository` (uploadPhoto, createReceipt); use-case «создать чек из скана».
+`ScanRepository.saveScannedReceipt(ReceiptDraft)`; use-case `SaveScannedReceipt`.
+OCR — `ReceiptOcrEngine` (`VisionOcrEngine`), разбор — `ReceiptParser` (`ReceiptParserImpl`).
 
 ## Riverpod-провайдеры
-`scanControllerProvider`, провайдер доступа к камере/сканеру.
+`scanControllerProvider`, `receiptOcrEngineProvider`, `receiptParserProvider`,
+`photoPickerProvider`, `scanRepositoryProvider`.
 
 ## Затрагиваемые RLS-политики
-Зона A: insert `receipts` по `auth.uid()`; запись в Storage в свой префикс.
+Зона A: insert/select/delete `receipts` и `receipt_items` по `auth.uid()`.
 
 ## Взаимодействие с воркером
-Косвенно: insert в `receipts` → триггер ставит задачу в `pgmq`.
+Прямого нет: позиции распознаются на клиенте, чек сохраняется сразу `done`.
+Триггер `receipts_enqueue` всё ещё ставит сообщение в `pgmq` (воркер его не читает —
+безвредно). Фискальный API/воркерный путь — будущий цикл.
 
-## Реализовано (цикл 2026-06-09)
-- Ветка фото (`source = ocr`): камера/галерея → сжатие → Storage → insert в `receipts`.
-- Серверное автозаполнение `user_id`/`country_code`/`family_id` триггером `receipts_fill_owner`.
-- Постановка задачи в `pgmq` (`receipts_processing`) триггером `receipts_enqueue`.
-- Ограничение фото: ресайз длинной стороны до 1600px, JPEG q85 (`image_compressor`).
+## Реализовано (цикл 2026-06-14 — Фаза 1, iOS)
+- Фото чека → Apple Vision (текст `ru` + QR) → парсер позиций (`ReceiptParserImpl`) →
+  ревью → сохранение `receipts`+`receipt_items` (`status = done`).
+- УИ из QR → `receipts.qr_raw`; валюта — триггером `receipts_fill_owner` из страны
+  (BY→BYN, RU→RUB, KZ→KZT).
+- Источник позиций — OCR по фото: легального API «позиции по QR» в РБ нет
+  (`ch.info-center.by` за reCAPTCHA, без публичного API) — обоснование в спеке 2026-06-14.
+- Прежний путь «фото→Storage→pending» (цикл 2026-06-09) удалён как устаревший.
 
 ## Открытые вопросы / отложено
-- QR-скан камерой (`source = qr`) — отдельный цикл (`mobile_scanner` отключён под
-  arm64-симулятор; тест на устройстве/Rosetta).
-- Семейное правило RLS на `receipts` (`OR family_id = current_user_family_id()`) —
-  в family-цикле.
-- Чистка осиротевших объектов Storage при сбое insert после успешной загрузки.
-- Формат и валидация `qr_raw` по странам.
+- **Фаза 2:** живое AVFoundation-превью с real-time QR-оверлеем.
+- Редактирование полей позиций (сейчас только удаление строки свайпом).
+- LLM-движок OCR (будущая платная фича); Android-движок OCR.
+- Семейное правило RLS (`OR family_id = current_user_family_id()`) — в family-цикле.
+- Точность парсера на кириллице/длинных чеках — тюнинг на реальных чеках (устройство).
