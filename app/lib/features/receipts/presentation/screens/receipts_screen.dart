@@ -52,11 +52,14 @@ class _ReceiptsScreenState extends ConsumerState<ReceiptsScreen> {
   Future<void> _delete(String id) async {
     try {
       await ref.read(receiptsListControllerProvider.notifier).deleteReceipt(id);
-    } catch (e) {
+    } on ReceiptsDeleteFailure catch (e) {
       if (!mounted) return;
-      final message = e is Failure ? e.message : 'Не удалось удалить чек';
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+          .showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      // Удаление прошло, но упал перезапрос списка: ошибка уже отражена
+      // в AppErrorView списка — отдельный SnackBar был бы дублем и сбивал бы
+      // атрибуцию (пользователь подумал бы, что не удалилось).
     }
   }
 

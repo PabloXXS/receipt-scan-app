@@ -34,7 +34,9 @@
 
 ## Дизайн-система (правила)
 
-Полные правила и каталог — `../docs/conventions/design-system.md`. Кратко:
+Полные правила и **карта выбора компонента** — `../docs/conventions/design-system.md`.
+Дизайн-система зафиксирована: **Material 3 + собственный каталог** (решение от 2026-06-12,
+сторонние библиотеки — shadcn_ui/forui/shadcn_flutter — отклонены как pre-1.0). Кратко:
 
 - **Единая тема** в `lib/core/theme/` (`AppTheme.light()/dark()`, `ColorScheme.fromSeed`,
   Inter, `AppTokens` через `ThemeExtension`). Доступ: `context.tokens`, `colorScheme`, `textTheme`.
@@ -42,11 +44,17 @@
   В `lib/features/**` UI-примитивы берём ТОЛЬКО из каталога (`AppButton`, `AppTextField`,
   `AppCard`, `AppListTile`, `AppChip`, `AppBadge`, `AppScaffold`, `AppEmptyState`,
   `AppErrorView`, `AppLoader`, `MoneyText`, `PriceDeltaText`).
+- **НЕ придумывай новые компоненты.** Перед вёрсткой сверься с картой выбора компонента
+  в design-system.md: потребность → компонент каталога. Нет в карте → композиция
+  существующих или стоковый M3 из разрешённого списка (SnackBar, showDialog/AlertDialog,
+  showModalBottomSheet, Switch/Checkbox/Radio/Slider, Icon, Divider и пр. — см. карту).
+  Локальные аналоги каталога в фичах (свой button/card/loader) — нарушение.
 - **Запрещено в фичах:** прямые `ElevatedButton/FilledButton/TextButton/OutlinedButton/
   TextField/Card/ListTile/Chip`; `Colors.*`, `Color(0x..)`, сырые `TextStyle(`, магические
-  отступы/радиусы. Стоковый Material — только для разметки.
+  отступы/радиусы; `*.adaptive`-конструкторы.
 - **Новый компонент** — только в `shared/components/` и только при повторе паттерна (≥2);
-  одноразовое — композиция существующих. (Напоминания включены хуком `flutter-guards`.)
+  одноразовое — композиция существующих; после добавления — обнови карту в design-system.md.
+  (Напоминания включены хуком `flutter-guards`.)
 - UI обязан работать в light/dark.
 - Перенос макетов из Figma — через `figma-generate-design`/`figma-code-connect` с привязкой
   к токенам, а не пиксельным хардкодом.

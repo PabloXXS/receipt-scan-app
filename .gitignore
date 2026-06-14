@@ -1,3 +1,7 @@
+# Локальный запуск с dev-кредами Supabase (не коммитить)
+app/run-dev.sh
+app/dart_defines.dev.json
+
 # Miscellaneous
 *.class
 *.log
@@ -60,3 +64,6 @@ worker/.phpunit.result.cache
 
 # Claude Code — личные локальные настройки
 .claude/settings.local.json
+
+# Локальный launch.json (содержит dev-креды Supabase, как run-dev.sh)
+.claude/launch.json

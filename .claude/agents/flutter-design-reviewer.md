@@ -26,9 +26,18 @@ color: cyan
   `AppChip`, `AppBadge`, `AppScaffold`, `AppEmptyState`, `AppErrorView`, `AppLoader`,
   `MoneyText`, `PriceDeltaText`). Прямые `ElevatedButton/FilledButton/TextButton/
   OutlinedButton/TextField/Card/ListTile/Chip` в фичах — нарушение.
-- **Новые компоненты** заводятся в `shared/components/` (с реэкспортом в `components.dart`
-  и widget-тестом), а не дублируются bespoke-версткой в фиче. Источник правил —
-  `docs/conventions/design-system.md`.
+- **Карта выбора компонента:** сверяй UI с картой в `docs/conventions/design-system.md`
+  (потребность → компонент). Разрешённый стоковый M3 без обёртки: `SnackBar` через
+  `ScaffoldMessenger`, `showDialog`+`AlertDialog`, `showModalBottomSheet`,
+  `Switch/Checkbox/Radio/Slider`, `NavigationBar/TabBar`, `Icon`, `Text` (стиль из
+  `textTheme`), `Divider`, `RefreshIndicator`, `Tooltip`, разметка. Всё прочее вне
+  каталога — нарушение. `*.adaptive`-конструкторы — нарушение.
+- **Дубликаты каталога:** приватный виджет в фиче, дублирующий назначение компонента
+  каталога (свой button/card/badge/loader/empty-state), — нарушение, даже если он
+  использует токены.
+- **Новые компоненты** заводятся в `shared/components/` (с реэкспортом в `components.dart`,
+  widget-тестом и строкой в карте компонентов), а не дублируются bespoke-версткой в фиче.
+  Источник правил — `docs/conventions/design-system.md`.
 
 ### 2. Material 3 и тема
 - Тема строится через `ColorScheme.fromSeed` (M3), `useMaterial3: true`.

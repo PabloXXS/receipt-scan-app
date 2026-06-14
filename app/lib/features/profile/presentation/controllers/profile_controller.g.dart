@@ -6,7 +6,7 @@ part of 'profile_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$profileControllerHash() => r'3258595beb79e7c76541533253a5e596916053ff';
+String _$profileControllerHash() => r'9a9e4a259a101617ddc7b87456b0adea08d776b9';
 
 /// Асинхронное состояние профиля текущего пользователя.
 ///

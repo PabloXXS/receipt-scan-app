@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:ticket_app/core/error/failure.dart';
 import 'package:ticket_app/features/receipts/domain/entities/receipt.dart';
 import 'package:ticket_app/features/receipts/domain/entities/receipt_details.dart';
 import 'package:ticket_app/features/receipts/domain/entities/receipt_item.dart';
@@ -64,8 +65,20 @@ class FakeReceiptsRepository implements ReceiptsRepository {
   Object? error;
   final List<String> deleted = [];
 
+  /// Если задано — `delete()` бросает эту ошибку (на `list()`/build не влияет).
+  Object? deleteError;
+
+  /// Если true: `delete()` проходит успешно, но СЛЕДУЮЩИЙ `list()` падает
+  /// с [ReceiptsLoadFailure] — модель «перезапрос после удаления упал».
+  bool failListAfterDelete = false;
+  bool _failNextList = false;
+
   @override
   Future<List<Receipt>> list({required int limit, required int offset}) async {
+    if (_failNextList) {
+      _failNextList = false;
+      throw const ReceiptsLoadFailure();
+    }
     if (error != null) throw error!;
     if (offset >= all.length) return [];
     return all.sublist(offset, math.min(offset + limit, all.length));
@@ -84,9 +97,11 @@ class FakeReceiptsRepository implements ReceiptsRepository {
 
   @override
   Future<void> delete(String id) async {
+    if (deleteError != null) throw deleteError!;
     if (error != null) throw error!;
     deleted.add(id);
     all = all.where((r) => r.id != id).toList();
+    if (failListAfterDelete) _failNextList = true;
   }
 
   @override

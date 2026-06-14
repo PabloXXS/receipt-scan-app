@@ -15,7 +15,9 @@ import 'package:intl/intl.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../shared/components/components.dart';
+import '../../domain/entities/receipt.dart';
 import '../../domain/entities/receipt_details.dart';
+import '../../domain/entities/receipt_item.dart';
 import '../controllers/receipt_details_controller.dart';
 import '../widgets/receipt_photo_thumbnail.dart';
 import '../widgets/receipt_status_badge.dart';
@@ -51,73 +53,184 @@ class _DetailsBody extends StatelessWidget {
     final tokens = context.tokens;
     final theme = Theme.of(context);
     final r = details.receipt;
-    final locale = Localizations.localeOf(context).toString();
 
     return ListView(
       padding: EdgeInsets.all(tokens.spaceMd),
       children: [
-        Row(
-          children: [
-            ReceiptPhotoThumbnail(photoPath: r.photoPath, size: 72),
-            SizedBox(width: tokens.spaceMd),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(r.storeName ?? 'Магазин не определён',
-                      style: theme.textTheme.titleLarge),
-                  SizedBox(height: tokens.spaceXs),
-                  Text(
-                    DateFormat.yMMMMd(locale).add_Hm().format(r.createdAt),
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-            ),
-            ReceiptStatusBadge(status: r.status),
-          ],
-        ),
+        _HeaderCard(receipt: r),
         SizedBox(height: tokens.spaceLg),
-        if (r.total != null && r.currency != null)
-          Row(
+        Padding(
+          padding: EdgeInsets.only(left: tokens.spaceXs, right: tokens.spaceXs),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              Text('Итого', style: theme.textTheme.titleMedium),
-              MoneyText(r.total!,
-                  currencyCode: r.currency!,
-                  style: theme.textTheme.titleMedium),
+              Text('Позиции', style: theme.textTheme.titleMedium),
+              if (details.items.isNotEmpty)
+                Text(
+                  '${details.items.length}',
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
             ],
           ),
-        const Divider(height: 32),
-        Text('Позиции', style: theme.textTheme.titleMedium),
+        ),
         SizedBox(height: tokens.spaceSm),
         if (details.items.isEmpty)
-          Text('Позиции ещё не распознаны',
+          AppCard(
+            child: Text(
+              'Позиции ещё не распознаны',
               style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant))
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          )
         else
-          ...details.items.map(
-            (it) => Padding(
-              padding: EdgeInsets.symmetric(vertical: tokens.spaceXs),
-              child: Row(
-                children: [
-                  Expanded(
-                      child:
-                          Text(it.rawName, style: theme.textTheme.bodyMedium)),
-                  SizedBox(width: tokens.spaceSm),
-                  Text('${_qty(it.qty)} × ',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
-                  if (r.currency != null)
-                    MoneyText(it.sum,
-                        currencyCode: r.currency!,
-                        style: theme.textTheme.bodyMedium),
+          AppCard(
+            padding: EdgeInsets.symmetric(vertical: tokens.spaceXs),
+            child: Column(
+              children: [
+                for (final (i, it) in details.items.indexed) ...[
+                  if (i > 0)
+                    Divider(
+                      height: 1,
+                      indent: tokens.spaceMd,
+                      endIndent: tokens.spaceMd,
+                    ),
+                  _ItemRow(item: it, currency: r.currency),
                 ],
-              ),
+              ],
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Шапка: фото, магазин, дата, статус и итоговая сумма.
+class _HeaderCard extends StatelessWidget {
+  const _HeaderCard({required this.receipt});
+
+  final Receipt receipt;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context).toString();
+
+    return AppCard(
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ReceiptPhotoThumbnail(photoPath: receipt.photoPath, size: 64),
+              SizedBox(width: tokens.spaceMd),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(receipt.storeName ?? 'Магазин не определён',
+                        style: theme.textTheme.titleLarge),
+                    SizedBox(height: tokens.spaceXs),
+                    Text(
+                      DateFormat.yMMMMd(locale).add_Hm().format(
+                            receipt.purchasedAt ?? receipt.createdAt,
+                          ),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: tokens.spaceSm),
+              ReceiptStatusBadge(status: receipt.status),
+            ],
+          ),
+          if (receipt.total != null && receipt.currency != null) ...[
+            Divider(height: tokens.spaceXl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text('Итого', style: theme.textTheme.titleMedium),
+                MoneyText(
+                  receipt.total!,
+                  currencyCode: receipt.currency!,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Одна позиция чека: название, опциональная строка «кол-во × цена» и сумма.
+class _ItemRow extends StatelessWidget {
+  const _ItemRow({required this.item, required this.currency});
+
+  final ReceiptItem item;
+  final String? currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.bodySmall
+        ?.copyWith(color: theme.colorScheme.onSurfaceVariant);
+
+    // Строку «кол-во × цена» показываем только когда она несёт смысл:
+    // для штучной единицы (qty = 1) сумма уже всё объясняет.
+    final showUnit = item.qty != 1;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: tokens.spaceMd,
+        vertical: tokens.spaceSm,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.rawName, style: theme.textTheme.bodyMedium),
+                if (showUnit && currency != null) ...[
+                  SizedBox(height: tokens.spaceXs),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${_qty(item.qty)} × ', style: muted),
+                      MoneyText(
+                        item.unitPrice,
+                        currencyCode: currency!,
+                        style: muted,
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(width: tokens.spaceMd),
+          if (currency != null)
+            MoneyText(
+              item.sum,
+              currencyCode: currency!,
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+        ],
+      ),
     );
   }
 

@@ -1,0 +1,5 @@
+cd ~/work/receipt-scan-app/app && \
+xcrun simctl boot B7B8D185-455F-42A7-8FEC-DA6B2F3F861D 2>/dev/null; \
+open -a Simulator && \
+xcrun simctl bootstatus B7B8D185-455F-42A7-8FEC-DA6B2F3F861D && \
+./run-dev.sh B7B8D185-455F-42A7-8FEC-DA6B2F3F861D

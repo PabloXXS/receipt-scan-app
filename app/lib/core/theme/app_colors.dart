@@ -15,8 +15,8 @@ import 'package:flutter/material.dart';
 class AppColors {
   const AppColors._();
 
-  /// Базовый цвет бренда (emerald) — из него строится палитра M3.
-  static const Color seed = Color(0xFF2E7D5B);
+  /// Базовый цвет бренда (royal blue) — из него строится палитра M3.
+  static const Color seed = Color(0xFF2563EB);
 
   // --- light ---
   static const Color successLight = Color(0xFF2E7D32);
