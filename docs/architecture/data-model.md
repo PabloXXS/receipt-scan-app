@@ -20,8 +20,8 @@ RLS: доступ по `auth.uid() = user_id` (для чеков расшире�
 | `receipt_items` | `id`, `receipt_id`, `user_id`, `family_id` (nullable), `raw_name`, `product_id`, `qty`, `unit_price`, `sum` | Позиции чека |
 | `loyalty_cards` | `id`, `user_id`, `chain_id`, `barcode`, `barcode_format`, `title`, `color` | Карты лояльности |
 
-> `receipts.store_id` создан без FK на `stores` (таблица зоны B ещё не создана);
-> внешний ключ добавится в reference/worker-цикле. Триггеры: `receipts_fill_owner`
+> `receipts.store_id` ссылается на `stores` через FK `receipts_store_id_fkey`
+> (`on delete set null`), добавленный миграцией `0004_stores_chains.sql`. Триггеры: `receipts_fill_owner`
 > (автозаполнение `user_id`/`country_code`/`family_id` из профиля), `receipts_enqueue`
 > (постановка `{receipt_id}` в очередь `pgmq` `receipts_processing`). RLS пока только
 > по `user_id = auth.uid()` — семейное правило добавится в family-цикле.
@@ -43,6 +43,12 @@ RLS: `select` для всех авторизованных; `insert/update` — 
 | `stores` | `id`, `chain_id`, `name`, `address`, `geo` (lat/lng), `region`, `country_code` | Торговые точки |
 | `chains` | `id`, `name`, `country_code` | Торговые сети |
 | `fiscal_providers` | `country_code`, `provider_key`, `config jsonb` | Мапинг страна → стратегия воркера |
+
+> `stores` и `chains` созданы миграцией `0004_stores_chains.sql` (RLS зоны B: `select`
+> для `authenticated`, запись — только service-role; клиентских политик записи нет).
+> `stores.geo` реализован парой колонок `lat`/`lng` (`double precision`); `chain_id` —
+> FK на `chains` (`on delete set null`). `products`/`product_aliases`/`categories`/
+> `fiscal_providers` пока не созданы (reference/worker-цикл).
 
 ## Зона C — обезличенная карта цен
 RLS: `select` для всех авторизованных; пишет только воркер. **Нет `user_id`/`family_id`.**
