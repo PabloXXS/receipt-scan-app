@@ -1,11 +1,13 @@
-/// Назначение: контроллер сканирования — состояние захвата/превью/отправки.
+/// Назначение: контроллер OCR-скана — захват фото → распознавание → ревью → сохранение.
 ///
 /// Слой: presentation
 /// Фича: scan
-/// Зависимости: dart:typed_data, riverpod_annotation, core/error/failure.dart,
-///   data/photo_picker.dart, data/repositories/scan_repository_impl.dart,
-///   data/scan_error_mapper.dart, domain/usecases/create_receipt_from_photo.dart.
-/// Ключевые типы: ScanState, ScanController, scanControllerProvider.
+/// Зависимости: riverpod_annotation, core/error/failure.dart, data/photo_picker.dart,
+///   data/vision_ocr_engine.dart, data/receipt_parser_impl.dart,
+///   data/repositories/scan_repository_impl.dart, data/scan_error_mapper.dart,
+///   domain/entities/receipt_draft.dart, domain/ocr/receipt_parser.dart,
+///   domain/usecases/save_scanned_receipt.dart.
+/// Ключевые типы: ScanState, ScanController, scanControllerProvider, receiptParserProvider.
 library;
 
 import 'dart:typed_data';
@@ -14,88 +16,101 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/error/failure.dart';
 import '../../data/photo_picker.dart';
+import '../../data/receipt_parser_impl.dart';
 import '../../data/repositories/scan_repository_impl.dart';
 import '../../data/scan_error_mapper.dart';
-import '../../domain/usecases/create_receipt_from_photo.dart';
+import '../../data/vision_ocr_engine.dart';
+import '../../domain/entities/receipt_draft.dart';
+import '../../domain/ocr/receipt_parser.dart';
+import '../../domain/usecases/save_scanned_receipt.dart';
 
 part 'scan_controller.g.dart';
 
-/// Состояние экрана сканирования.
+/// Состояние экрана скана.
 sealed class ScanState {
   const ScanState();
 }
 
-/// Ничего не выбрано — показываем кнопки захвата.
 class ScanIdle extends ScanState {
   const ScanIdle();
 }
 
-/// Фото выбрано, ожидает подтверждения отправки.
-class ScanPreview extends ScanState {
-  const ScanPreview(this.photoBytes);
-  final Uint8List photoBytes;
+class ScanRecognizing extends ScanState {
+  const ScanRecognizing();
 }
 
-/// Идёт загрузка и создание чека.
-class ScanSubmitting extends ScanState {
-  const ScanSubmitting(this.photoBytes);
-  final Uint8List photoBytes;
+class ScanReview extends ScanState {
+  const ScanReview(this.draft);
+  final ReceiptDraft draft;
 }
 
-/// Чек создан.
-class ScanSuccess extends ScanState {
-  const ScanSuccess(this.receiptId);
+class ScanSaving extends ScanState {
+  const ScanSaving(this.draft);
+  final ReceiptDraft draft;
+}
+
+class ScanSaved extends ScanState {
+  const ScanSaved(this.receiptId);
   final String receiptId;
 }
 
-/// Ошибка. [photoBytes] != null — ошибка отправки (можно повторить из превью);
-/// null — ошибка выбора (возврат к экрану захвата).
 class ScanError extends ScanState {
-  const ScanError(this.failure, [this.photoBytes]);
+  const ScanError(this.failure, [this.draft]);
   final ScanFailure failure;
-  final Uint8List? photoBytes;
+  final ReceiptDraft? draft;
 }
 
-/// Управляет процессом сканирования чека.
+/// DI-провайдер парсера.
+final receiptParserProvider =
+    Provider<ReceiptParser>((ref) => ReceiptParserImpl());
+
+/// Управляет потоком: захват → OCR → парсинг → ревью → сохранение.
 @riverpod
 class ScanController extends _$ScanController {
   @override
   ScanState build() => const ScanIdle();
 
-  Future<void> pickFromCamera() => _pick((p) => p.pickFromCamera());
-  Future<void> pickFromGallery() => _pick((p) => p.pickFromGallery());
+  Future<void> pickFromCamera() => _capture((p) => p.pickFromCamera());
+  Future<void> pickFromGallery() => _capture((p) => p.pickFromGallery());
 
-  Future<void> _pick(Future<Uint8List?> Function(PhotoPicker) run) async {
+  Future<void> _capture(Future<Uint8List?> Function(PhotoPicker) pick) async {
     try {
-      final bytes = await run(ref.read(photoPickerProvider));
-      if (bytes == null) return; // отмена — состояние не меняем
-      state = ScanPreview(bytes);
+      final bytes = await pick(ref.read(photoPickerProvider));
+      if (bytes == null) return; // отмена
+      state = const ScanRecognizing();
+      final ocr = await ref.read(receiptOcrEngineProvider).recognize(bytes);
+      final draft = ref.read(receiptParserProvider).parse(ocr);
+      state = ScanReview(draft);
     } catch (e) {
       state = ScanError(mapScanException(e));
     }
   }
 
-  /// Сброс к экрану захвата.
-  void retake() => state = const ScanIdle();
+  /// Удалить ошибочную позицию из текущего ревью.
+  void removeItem(int index) {
+    final s = state;
+    if (s is ScanReview) state = ScanReview(s.draft.removeItemAt(index));
+  }
 
-  /// Сброс после успеха (синоним retake — для читаемости вызова из success-вида).
-  void reset() => state = const ScanIdle();
-
-  /// Отправка текущего фото (из превью или из состояния ошибки отправки).
-  Future<void> submit() async {
-    final bytes = switch (state) {
-      ScanPreview(:final photoBytes) => photoBytes,
-      ScanError(:final photoBytes?) => photoBytes,
+  /// Сохранить распознанный чек.
+  Future<void> save() async {
+    final s = state;
+    final draft = switch (s) {
+      ScanReview(:final draft) => draft,
+      ScanError(:final draft?) => draft,
       _ => null,
     };
-    if (bytes == null) return;
-
-    state = ScanSubmitting(bytes);
+    if (draft == null) return;
+    state = ScanSaving(draft);
     try {
-      final usecase = CreateReceiptFromPhoto(ref.read(scanRepositoryProvider));
-      state = ScanSuccess(await usecase(bytes));
+      final id =
+          await SaveScannedReceipt(ref.read(scanRepositoryProvider))(draft);
+      state = ScanSaved(id);
     } catch (e) {
-      state = ScanError(mapScanException(e), bytes);
+      state = ScanError(mapScanException(e), draft);
     }
   }
+
+  /// Сброс к началу.
+  void reset() => state = const ScanIdle();
 }

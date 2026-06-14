@@ -5,6 +5,8 @@
 /// Зависимости: flutter, flutter_riverpod, shared/components,
 ///   presentation/controllers/scan_controller.dart, presentation/widgets/*.
 /// Ключевые типы: ScanScreen.
+///
+/// TODO(Task-10): переписать под новые состояния OCR-потока (ScanReview/ScanSaved).
 library;
 
 import 'package:flutter/material.dart';
@@ -13,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/components/components.dart';
 import '../controllers/scan_controller.dart';
 import '../widgets/scan_capture_view.dart';
-import '../widgets/scan_preview_view.dart';
 import '../widgets/scan_success_view.dart';
 
 /// Экран сканирования чека (фото). QR — отдельный цикл.
@@ -26,13 +27,11 @@ class ScanScreen extends ConsumerWidget {
 
     final body = switch (state) {
       ScanIdle() => const ScanCaptureView(),
-      ScanPreview(:final photoBytes) => ScanPreviewView(photoBytes: photoBytes),
-      ScanSubmitting(:final photoBytes) =>
-        ScanPreviewView(photoBytes: photoBytes, submitting: true),
-      ScanSuccess() => const ScanSuccessView(),
-      ScanError(:final failure, :final photoBytes) => photoBytes == null
-          ? ScanCaptureView(error: failure.message)
-          : ScanPreviewView(photoBytes: photoBytes, error: failure.message),
+      ScanRecognizing() => const AppLoader(),
+      ScanReview() => const ScanCaptureView(), // TODO(Task-10): ScanReviewView
+      ScanSaving() => const AppLoader(),
+      ScanSaved() => const ScanSuccessView(),
+      ScanError(:final failure) => ScanCaptureView(error: failure.message),
     };
 
     return AppScaffold(title: 'Сканировать', body: body);

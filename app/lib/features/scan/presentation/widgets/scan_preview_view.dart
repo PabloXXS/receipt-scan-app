@@ -5,6 +5,8 @@
 /// Зависимости: dart:typed_data, flutter, flutter_riverpod, shared/components,
 ///   core/theme, presentation/controllers/scan_controller.dart.
 /// Ключевые типы: ScanPreviewView.
+///
+/// TODO(Task-10): заменить на ScanReviewView под новый OCR-поток.
 library;
 
 import 'dart:typed_data';
@@ -16,7 +18,7 @@ import '../../../../core/theme/app_tokens.dart';
 import '../../../../shared/components/components.dart';
 import '../controllers/scan_controller.dart';
 
-/// Предпросмотр фото. [submitting] — идёт отправка; [error] — текст ошибки отправки.
+/// Предпросмотр фото (временная заглушка — будет заменена в Task-10).
 class ScanPreviewView extends ConsumerWidget {
   const ScanPreviewView({
     super.key,
@@ -68,14 +70,14 @@ class ScanPreviewView extends ConsumerWidget {
             icon: Icons.cloud_upload,
             expanded: true,
             loading: submitting,
-            onPressed: submitting ? null : controller.submit,
+            onPressed: submitting ? null : controller.reset,
           ),
           SizedBox(height: tokens.spaceSm),
           AppButton(
             label: 'Переснять',
             variant: AppButtonVariant.text,
             expanded: true,
-            onPressed: submitting ? null : controller.retake,
+            onPressed: submitting ? null : controller.reset,
           ),
         ],
       ),

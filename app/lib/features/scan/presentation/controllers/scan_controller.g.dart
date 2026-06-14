@@ -6,9 +6,9 @@ part of 'scan_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$scanControllerHash() => r'10c818bac2d074c4488c56d84db1a78b57d5f178';
+String _$scanControllerHash() => r'f9b9aea204c877dffc1e7910140ca67a11327a85';
 
-/// Управляет процессом сканирования чека.
+/// Управляет потоком: захват → OCR → парсинг → ревью → сохранение.
 ///
 /// Copied from [ScanController].
 @ProviderFor(ScanController)
