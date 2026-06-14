@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -50,6 +51,15 @@ class _ChekiPricesAppState extends ConsumerState<ChekiPricesApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
+      // Приложение русскоязычное: форсим ru, чтобы даты/суммы (intl) и стоковые
+      // строки Material форматировались по-русски.
+      locale: const Locale('ru'),
+      supportedLocales: const [Locale('ru'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: _router,
     );
   }
