@@ -44,19 +44,21 @@ class _ReceiptsScreenState extends ConsumerState<ReceiptsScreen> {
 
   void _onScroll() {
     final pos = _scrollController.position;
-    if (pos.pixels >= pos.maxScrollExtent - 200) {
-      ref.read(receiptsListControllerProvider.notifier).loadMore();
-    }
+    if (pos.pixels < pos.maxScrollExtent - 200) return;
+    final s = ref.read(receiptsListControllerProvider).valueOrNull;
+    if (s == null || !s.hasMore || s.isLoadingMore) return;
+    ref.read(receiptsListControllerProvider.notifier).loadMore();
   }
 
   Future<void> _delete(String id) async {
     try {
       await ref.read(receiptsListControllerProvider.notifier).deleteReceipt(id);
-    } catch (e) {
+    } on ReceiptsDeleteFailure catch (e) {
       if (!mounted) return;
-      final message = e is Failure ? e.message : 'Не удалось удалить чек';
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+          .showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      // Ошибка перезапроса после успешного удаления отражается в AppErrorView списка.
     }
   }
 
