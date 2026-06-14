@@ -37,7 +37,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationBar), findsOneWidget);
-    for (final label in ['Чеки', 'Статистика', 'Скан', 'Профиль']) {
+    for (final label in ['Чеки', 'Статистика', 'Скан', 'Настройки']) {
       expect(find.text(label), findsOneWidget);
     }
     expect(find.text('Ветка-Чеки'), findsOneWidget);

@@ -20,10 +20,11 @@ import '../../../../core/theme/app_tokens.dart';
 import '../../../../core/theme/theme_mode_controller.dart';
 import '../../../../shared/components/components.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import '../../domain/entities/profile.dart';
+import '../controllers/cached_country_controller.dart';
 import '../controllers/profile_controller.dart';
 import '../widgets/country_picker_sheet.dart';
 import '../widgets/profile_header.dart';
+import '../widgets/profile_header_skeleton.dart';
 import '../widgets/theme_mode_sheet.dart';
 
 /// Экран настроек приложения и профиля.
@@ -36,71 +37,97 @@ class SettingsScreen extends ConsumerWidget {
     final email = ref.watch(currentUserEmailProvider);
     final themeMode = ref.watch(themeModeControllerProvider);
     final isSigningOut = ref.watch(authControllerProvider).isLoading;
+    final cachedCountry = ref.watch(cachedCountryControllerProvider);
+
+    // Write-through: кэшируем код страны при каждом успешном обновлении профиля.
+    ref.listen(profileControllerProvider, (prev, next) {
+      final code = next.valueOrNull?.countryCode;
+      if (code != null) {
+        ref.read(cachedCountryControllerProvider.notifier).cache(code);
+      }
+    });
 
     final profile = profileAsync.valueOrNull;
-    final body = profile == null
-        ? (profileAsync.hasError
-            ? AppErrorView(
-                message: 'Не удалось загрузить профиль',
-                onRetry: () => ref.invalidate(profileControllerProvider),
-              )
-            : const AppLoader())
-        : _buildList(context, ref, profile, email, themeMode, isSigningOut);
-    return AppScaffold(title: 'Настройки', body: body);
-  }
 
-  Widget _buildList(
-    BuildContext context,
-    WidgetRef ref,
-    Profile profile,
-    String? email,
-    ThemeMode themeMode,
-    bool isSigningOut,
-  ) {
+    // Шапка профиля: скелетон → ошибка → данные.
+    final Widget headerArea;
+    if (profile != null) {
+      headerArea = ProfileHeader(
+        profile: profile,
+        email: email,
+        onTap: () => context.push(AppRoutes.editProfile),
+      );
+    } else if (profileAsync.hasError) {
+      headerArea = AppCard(
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Не удалось загрузить профиль',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            AppButton(
+              label: 'Повторить',
+              variant: AppButtonVariant.text,
+              onPressed: () => ref.invalidate(profileControllerProvider),
+            ),
+          ],
+        ),
+      );
+    } else {
+      headerArea = const ProfileHeaderSkeleton();
+    }
+
+    final countryCode = cachedCountry ?? profile?.countryCode;
     final tokens = context.tokens;
-    return ListView(
-      padding: EdgeInsets.all(tokens.spaceLg),
-      children: [
-        ProfileHeader(
-          profile: profile,
-          email: email,
-          onTap: () => context.push(AppRoutes.editProfile),
-        ),
-        SizedBox(height: tokens.spaceLg),
-        AppListTile(
-          title: 'Страна',
-          subtitle: countryName(profile.countryCode),
-          leading: const Icon(Icons.public),
-          onTap: () => _changeCountry(context, ref, profile.countryCode),
-        ),
-        AppListTile(
-          title: 'Сменить пароль',
-          leading: const Icon(Icons.lock_outline),
-          onTap: () => context.push(AppRoutes.resetPassword),
-        ),
-        SizedBox(height: tokens.spaceMd),
-        AppListTile(
-          title: 'Тема оформления',
-          subtitle: _themeLabel(themeMode),
-          leading: const Icon(Icons.brightness_6_outlined),
-          onTap: () => _changeTheme(context, ref, themeMode),
-        ),
-        SizedBox(height: tokens.spaceMd),
-        const AppListTile(
-          title: 'Семья',
-          subtitle: 'Скоро',
-          leading: Icon(Icons.group_outlined),
-          // onTap намеренно не задан — раздел в разработке.
-        ),
-        SizedBox(height: tokens.spaceXl),
-        AppButton(
-          label: 'Выйти',
-          variant: AppButtonVariant.destructive,
-          expanded: true,
-          loading: isSigningOut,
-          onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
-        ),
-      ],
+
+    return AppScaffold(
+      title: 'Настройки',
+      body: ListView(
+        padding: EdgeInsets.all(tokens.spaceLg),
+        children: [
+          headerArea,
+          SizedBox(height: tokens.spaceLg),
+          AppListTile(
+            title: 'Страна',
+            subtitle:
+                countryCode != null ? countryName(countryCode) : 'Загрузка…',
+            leading: const Icon(Icons.public),
+            onTap: countryCode == null
+                ? null
+                : () => _changeCountry(context, ref, countryCode),
+          ),
+          AppListTile(
+            title: 'Сменить пароль',
+            leading: const Icon(Icons.lock_outline),
+            onTap: () => context.push(AppRoutes.resetPassword),
+          ),
+          SizedBox(height: tokens.spaceMd),
+          AppListTile(
+            title: 'Тема оформления',
+            subtitle: _themeLabel(themeMode),
+            leading: const Icon(Icons.brightness_6_outlined),
+            onTap: () => _changeTheme(context, ref, themeMode),
+          ),
+          SizedBox(height: tokens.spaceMd),
+          const AppListTile(
+            title: 'Семья',
+            subtitle: 'Скоро',
+            leading: Icon(Icons.group_outlined),
+            // onTap намеренно не задан — раздел в разработке.
+          ),
+          SizedBox(height: tokens.spaceXl),
+          AppButton(
+            label: 'Выйти',
+            variant: AppButtonVariant.destructive,
+            expanded: true,
+            loading: isSigningOut,
+            onPressed: () =>
+                ref.read(authControllerProvider.notifier).signOut(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -134,6 +161,7 @@ class SettingsScreen extends ConsumerWidget {
     if (confirmed == true) {
       try {
         await ref.read(profileControllerProvider.notifier).setCountry(picked);
+        await ref.read(cachedCountryControllerProvider.notifier).cache(picked);
       } catch (_) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

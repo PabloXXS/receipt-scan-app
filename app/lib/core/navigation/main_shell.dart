@@ -46,9 +46,9 @@ class MainShell extends StatelessWidget {
             label: 'Скан',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Профиль',
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Настройки',
           ),
         ],
       ),
