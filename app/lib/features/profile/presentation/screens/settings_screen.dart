@@ -58,22 +58,9 @@ class SettingsScreen extends ConsumerWidget {
         onTap: () => context.push(AppRoutes.editProfile),
       );
     } else if (profileAsync.hasError) {
-      headerArea = AppCard(
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Не удалось загрузить профиль',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-            AppButton(
-              label: 'Повторить',
-              variant: AppButtonVariant.text,
-              onPressed: () => ref.invalidate(profileControllerProvider),
-            ),
-          ],
-        ),
+      headerArea = AppErrorView(
+        message: 'Не удалось загрузить профиль',
+        onRetry: () => ref.invalidate(profileControllerProvider),
       );
     } else {
       headerArea = const ProfileHeaderSkeleton();
@@ -147,13 +134,15 @@ class SettingsScreen extends ConsumerWidget {
           'Ранее сохранённые чеки не изменятся.',
         ),
         actions: [
-          TextButton(
+          AppButton(
+            label: 'Отмена',
+            variant: AppButtonVariant.text,
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
           ),
-          TextButton(
+          AppButton(
+            label: 'Сменить',
+            variant: AppButtonVariant.text,
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Сменить'),
           ),
         ],
       ),

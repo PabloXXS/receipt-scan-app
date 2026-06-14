@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_tokens.dart';
 
+/// Длительность одного такта пульсации скелетона.
+const Duration _kSkeletonPeriod = Duration(milliseconds: 1100);
+
 /// Пульсирующий плейсхолдер для скелетон-загрузки.
 ///
 /// [width] null — занимает доступную ширину. Для круга задай [shape] = circle.
@@ -34,7 +37,7 @@ class _AppSkeletonState extends State<AppSkeleton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1100),
+    duration: _kSkeletonPeriod,
   )..repeat(reverse: true);
 
   @override
@@ -47,19 +50,21 @@ class _AppSkeletonState extends State<AppSkeleton>
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final color = Theme.of(context).colorScheme.onSurface;
-    return FadeTransition(
-      opacity: Tween<double>(begin: 0.08, end: 0.20).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-      ),
-      child: Container(
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-          color: color,
-          shape: widget.shape,
-          borderRadius: widget.shape == BoxShape.circle
-              ? null
-              : BorderRadius.circular(widget.radius ?? tokens.radiusSm),
+    return ExcludeSemantics(
+      child: FadeTransition(
+        opacity: Tween<double>(begin: 0.08, end: 0.20).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+        ),
+        child: Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            color: color,
+            shape: widget.shape,
+            borderRadius: widget.shape == BoxShape.circle
+                ? null
+                : BorderRadius.circular(widget.radius ?? tokens.radiusSm),
+          ),
         ),
       ),
     );
