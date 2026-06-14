@@ -3,7 +3,7 @@
 /// Слой: presentation
 /// Фича: receipts
 /// Зависимости: flutter material, flutter_slidable, intl, core/theme/app_tokens.dart,
-///   shared/components, domain/entities/receipt.dart, widgets (thumbnail/status badge).
+///   shared/components, domain/entities/receipt.dart, widgets/receipt_photo_thumbnail.dart.
 /// Ключевые типы: ReceiptListItem.
 library;
 
@@ -15,12 +15,11 @@ import '../../../../core/theme/app_tokens.dart';
 import '../../../../shared/components/components.dart';
 import '../../domain/entities/receipt.dart';
 import 'receipt_photo_thumbnail.dart';
-import 'receipt_status_badge.dart';
 
 /// Фолбэк-название, когда магазин ещё не распознан воркером.
 const String _storeFallback = 'Магазин не определён';
 
-/// Строка чека: фото, магазин, сумма, дата, статус; свайп → удаление.
+/// Строка чека: фото, магазин, сумма, дата; свайп → удаление.
 class ReceiptListItem extends StatelessWidget {
   const ReceiptListItem({
     required this.receipt,
@@ -91,8 +90,6 @@ class ReceiptListItem extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: tokens.spaceSm),
-            ReceiptStatusBadge(status: receipt.status),
           ],
         ),
       ),

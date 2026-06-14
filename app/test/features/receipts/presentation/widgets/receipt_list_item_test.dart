@@ -6,7 +6,7 @@ import '../../receipts_test_fakes.dart';
 import '../../../../helpers/pump_app.dart';
 
 void main() {
-  testWidgets('показывает название магазина, сумму и бейдж статуса',
+  testWidgets('показывает название магазина и сумму, без бейджа статуса',
       (tester) async {
     await pumpApp(
       tester,
@@ -18,7 +18,8 @@ void main() {
     );
     expect(find.text('Пятёрочка'), findsOneWidget);
     expect(find.textContaining('250'), findsWidgets);
-    expect(find.byType(ReceiptStatusBadge), findsOneWidget);
+    // Статус в списке не показываем (только на экране деталей).
+    expect(find.byType(ReceiptStatusBadge), findsNothing);
   });
 
   testWidgets('без названия магазина показывает фолбэк', (tester) async {
