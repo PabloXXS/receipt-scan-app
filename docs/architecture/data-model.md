@@ -12,9 +12,12 @@ RLS: доступ по `auth.uid() = user_id` (для чеков расшире�
 > `profiles` создаётся автоматически триггером `handle_new_user()` (`SECURITY DEFINER`)
 > на `auth.users`; `country_code`/`display_name` берутся из `raw_user_meta_data`.
 
-> Storage-бакет `avatars` (зона A, публичный): каждый пользователь может читать любой
-> объект, но записывать/изменять/удалять — только в своей папке `{auth.uid}/...`.
-> Ссылка на аватар хранится в `profiles.avatar_url`. Добавлен миграцией `0005_profile_avatar.sql`.
+> Storage-бакет `avatars` (зона A, публичный): чтение по публичному URL доступно
+> всем (бакет `public`), а RLS-операции (`insert/update/select/delete`) ограничены
+> своей папкой `{auth.uid}/...` для `authenticated`. `select`-own нужен, т.к.
+> загрузка идёт `upsert`-ом. Ссылка на аватар — в `profiles.avatar_url`. Миграции:
+> `0005_profile_avatar.sql` (бакет+RLS), `0006_avatars_drop_public_listing.sql`
+> (убрать листинг), `0007_avatars_select_own.sql` (scoped select для upsert).
 
 | `receipts` | `id`, `user_id`, `family_id` (nullable), `country_code`, `source` (qr/ocr), `status` (pending/processing/done/failed), `qr_raw`, `photo_path`, `store_id`, `purchased_at`, `total`, `currency`, `error` | «Сырой» и обработанный чек |
 | `receipt_items` | `id`, `receipt_id`, `user_id`, `family_id` (nullable), `raw_name`, `product_id`, `qty`, `unit_price`, `sum` | Позиции чека |
