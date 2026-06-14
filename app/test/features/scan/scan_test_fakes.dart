@@ -1,26 +1,30 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:image/image.dart' as img;
 import 'package:ticket_app/features/scan/data/photo_picker.dart';
 import 'package:ticket_app/features/scan/domain/entities/ocr_result.dart';
 import 'package:ticket_app/features/scan/domain/entities/receipt_draft.dart';
 import 'package:ticket_app/features/scan/domain/ocr/receipt_ocr_engine.dart';
 import 'package:ticket_app/features/scan/domain/repositories/scan_repository.dart';
 
-/// Валидный 1×1 PNG — для Image.memory в widget-тестах и как «байты фото».
-final Uint8List kValidPngBytes = base64Decode(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk'
-  '+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-);
+/// Валидный PNG (декодируется и Flutter `Image.memory`, и `package:image`) —
+/// для widget-тестов и как «байты фото» при сохранении скана.
+final Uint8List kValidPngBytes =
+    Uint8List.fromList(img.encodePng(img.Image(width: 4, height: 4)));
 
-/// Фейк репозитория сканирования: опционально кидает ошибку.
+/// Фейк репозитория сканирования: опционально кидает ошибку, фиксирует фото.
 class FakeScanRepository implements ScanRepository {
   Object? error;
   String receiptId = 'rid-1';
+  Uint8List? receivedPhotoBytes;
 
   @override
-  Future<String> saveScannedReceipt(ReceiptDraft draft) async {
+  Future<String> saveScannedReceipt(
+    ReceiptDraft draft, {
+    Uint8List? photoBytes,
+  }) async {
     if (error != null) throw error!;
+    receivedPhotoBytes = photoBytes;
     return receiptId;
   }
 }
