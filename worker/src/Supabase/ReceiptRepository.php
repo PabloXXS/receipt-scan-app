@@ -27,9 +27,12 @@ final class ReceiptRepository
     /**
      * Контекст чека для обработки: владелец и путь фото.
      *
-     * Триггер receipt_items_fill_owner ставит user_id := auth.uid(), но под
-     * service-role это NULL при NOT NULL колонке — поэтому owner читаем здесь
-     * и проставляем явно при записи позиций.
+     * После миграции 0010 триггер receipt_items_fill_owner ставит
+     * user_id := coalesce(auth.uid(), new.user_id): сначала берёт auth.uid(),
+     * а при его отсутствии — уже переданный в строке user_id. Под service-role
+     * auth.uid() = NULL, поэтому воркер ОБЯЗАН проставлять owner (user_id и
+     * family_id) явно — иначе NOT NULL-колонка user_id нарушится и привязка к
+     * владельцу потеряется. Owner читаем здесь и передаём в replaceItems().
      *
      * @return array{user_id:?string, family_id:?string, photo_path:?string}
      */

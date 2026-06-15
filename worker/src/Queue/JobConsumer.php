@@ -43,6 +43,13 @@ final class JobConsumer
                     throw new \RuntimeException('job without receipt_id');
                 }
                 $this->processor->process($receiptId);
+                // Успешный возврат из process() означает «задача завершена»:
+                // либо чек переведён в review, либо перманентный failed уже
+                // зафиксирован внутри process() (например, нет photo_path/owner —
+                // ретрай бессмыслен). В обоих случаях сообщение удаляем.
+                // Ретрай возможен ТОЛЬКО через брошенное исключение —
+                // транзиентные ошибки (OCR-сервис/сеть): vt истечёт и сообщение
+                // вернётся, а после maxAttempts уйдёт в archive (см. catch ниже).
                 $this->queue->delete($this->queueName, $job['msg_id']);
             } catch (\Throwable $e) {
                 if ($job['read_ct'] >= $this->maxAttempts) {

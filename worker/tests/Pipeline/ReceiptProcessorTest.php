@@ -43,4 +43,22 @@ final class ReceiptProcessorTest extends TestCase
         $result = (new ReceiptProcessor($ocr, $persist, $repo))->process('r1');
         self::assertSame('failed', $result->status);
     }
+
+    public function testMissingUserIdMarksFailed(): void
+    {
+        // Чек удалён → контекст без owner: user_id = null. OCR/persist не
+        // вызываем, чек помечаем failed (перманентный отказ, без исключения).
+        $repo = $this->createMock(ReceiptRepository::class);
+        $repo->method('getReceiptContext')
+            ->willReturn(['user_id' => null, 'family_id' => null, 'photo_path' => 'uid/ts.jpg']);
+        $repo->expects(self::once())->method('markFailed')->with('r1', self::stringContains('user_id'));
+
+        $ocr = $this->createMock(OcrFallbackStep::class);
+        $ocr->expects(self::never())->method('run');
+        $persist = $this->createMock(PersistReceiptStep::class);
+        $persist->expects(self::never())->method('run');
+
+        $result = (new ReceiptProcessor($ocr, $persist, $repo))->process('r1');
+        self::assertSame('failed', $result->status);
+    }
 }

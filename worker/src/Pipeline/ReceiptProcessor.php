@@ -36,8 +36,18 @@ final class ReceiptProcessor
             $this->receipts->markFailed($receiptId, 'no photo_path for OCR');
             return new ProcessingResult('failed', 'no photo_path');
         }
+        // receipts.user_id NOT NULL — в норме owner есть. Но задача может
+        // ссылаться на удалённый чек: контекст пуст, user_id придёт null.
+        // Без owner запись receipt_items под service-role нарушит NOT NULL и
+        // разорвёт привязку к владельцу — это перманентный отказ, ретрай
+        // бессмыслен, ведём себя как при отсутствии photo_path.
+        $userId = $ctx['user_id'] ?? null;
+        if ($userId === null || $userId === '') {
+            $this->receipts->markFailed($receiptId, 'no user_id for receipt');
+            return new ProcessingResult('failed', 'no user_id');
+        }
         $data = $this->ocr->run($photoPath);
-        $this->persist->run($receiptId, (string) $ctx['user_id'], $ctx['family_id'], $data);
+        $this->persist->run($receiptId, $userId, $ctx['family_id'], $data);
         return new ProcessingResult('review');
     }
 }
