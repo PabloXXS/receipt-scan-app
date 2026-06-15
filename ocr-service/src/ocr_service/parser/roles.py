@@ -5,7 +5,7 @@ import re
 from itertools import permutations
 
 from ocr_service.models import Observation
-from ocr_service.parser.columns import is_money, money_value
+from ocr_service.parser.columns import is_money
 
 _NUM = re.compile(r"\d+[.,]\d+|\d+")
 
@@ -50,7 +50,7 @@ def infer_price_qty_sum(
     best: tuple[float, float] | None = None
     best_err = tol
     for a, b in permutations(rest, 2) if len(rest) >= 2 else [(rest[0], 1.0)]:
-        if abs(a * b - s_val) <= max(best_err, tol) and a * b != 0:
+        if abs(a * b - s_val) <= tol and a * b != 0:
             err = abs(a * b - s_val)
             if best is None or err < best_err:
                 best, best_err = (a, b), err
