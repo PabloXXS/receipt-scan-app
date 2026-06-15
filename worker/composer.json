@@ -21,6 +21,10 @@
             "ChekiPrices\\Worker\\Tests\\": "tests/"
         }
     },
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "lint": "find src bin config -name '*.php' -print0 | xargs -0 -n1 php -l"
+    },
     "config": {
         "sort-packages": true
     },
