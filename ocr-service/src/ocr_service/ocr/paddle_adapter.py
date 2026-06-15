@@ -1,4 +1,7 @@
-"""Адаптер PaddleOCR: фото-байты → Observation[] (нормализованная геометрия)."""
+"""Адаптер PaddleOCR: фото-байты → Observation[] (нормализованная геометрия).
+
+Целевая версия: PaddleOCR 2.x (lang=cyrillic, PP-OCRv4 cyrillic-модель).
+"""
 from __future__ import annotations
 
 import io
@@ -14,7 +17,7 @@ class PaddleAdapter:
     """Ленивая обёртка над PaddleOCR (импорт внутри, чтобы не тянуть в тестах ядра)."""
 
     def __init__(self) -> None:
-        from paddleocr import PaddleOCR  # heavy, only in Docker
+        from paddleocr import PaddleOCR  # heavy, only in Docker; PaddleOCR 2.x API
 
         self._ocr = PaddleOCR(lang="cyrillic", use_angle_cls=True, show_log=False)
 

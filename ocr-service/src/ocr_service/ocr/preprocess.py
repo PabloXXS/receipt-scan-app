@@ -1,4 +1,7 @@
-"""Препроцессинг фото чека: grayscale, нормализация контраста, апскейл."""
+"""Препроцессинг фото чека: grayscale + нормализация контраста.
+
+TODO (будущее): дескью и бинаризация — пока не реализованы.
+"""
 from __future__ import annotations
 
 import numpy as np
@@ -23,5 +26,5 @@ def normalize(gray: np.ndarray) -> np.ndarray:
 
 
 def prepare(img: np.ndarray) -> np.ndarray:
-    """Полный препроцессинг для OCR."""
+    """Препроцессинг для OCR: grayscale + нормализация контраста."""
     return normalize(to_grayscale(img))
