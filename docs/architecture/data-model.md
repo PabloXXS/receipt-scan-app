@@ -19,7 +19,7 @@ RLS: доступ по `auth.uid() = user_id` (для чеков расшире�
 > `0005_profile_avatar.sql` (бакет+RLS), `0006_avatars_drop_public_listing.sql`
 > (убрать листинг), `0007_avatars_select_own.sql` (scoped select для upsert).
 
-| `receipts` | `id`, `user_id`, `family_id` (nullable), `country_code`, `source` (qr/ocr), `status` (pending/processing/done/failed), `qr_raw`, `photo_path`, `store_id`, `purchased_at`, `total`, `currency`, `error` | «Сырой» и обработанный чек |
+| `receipts` | `id`, `user_id`, `family_id` (nullable), `country_code`, `source` (qr/ocr), `status` (pending/processing/review/done/failed), `qr_raw`, `photo_path`, `store_id`, `purchased_at`, `total`, `currency`, `error` | «Сырой» и обработанный чек |
 | `receipt_items` | `id`, `receipt_id`, `user_id`, `family_id` (nullable), `raw_name`, `product_id`, `qty`, `unit_price`, `sum` | Позиции чека |
 | `loyalty_cards` | `id`, `user_id`, `chain_id`, `barcode`, `barcode_format`, `title`, `color` | Карты лояльности |
 
@@ -28,6 +28,13 @@ RLS: доступ по `auth.uid() = user_id` (для чеков расшире�
 > (автозаполнение `user_id`/`country_code`/`family_id` из профиля), `receipts_enqueue`
 > (постановка `{receipt_id}` в очередь `pgmq` `receipts_processing`). RLS пока только
 > по `user_id = auth.uid()` — семейное правило добавится в family-цикле.
+
+> RPC `confirm_receipt(p_receipt_id uuid, p_items jsonb)` (`SECURITY DEFINER`, миграция
+> `0008`) — подтверждение чека после ревью: проверяет владение (`auth.uid()`) и статус
+> (`review`), заменяет `receipt_items` подтверждёнными позициями, ставит `status=done` и
+> пересчитывает `total` из суммы позиций. Обходит запрет клиентского `UPDATE receipts`,
+> не расширяя UPDATE-RLS; доступен только роли `authenticated`. Статус-поток:
+> `pending → processing → review → done | failed`. Зона A.
 
 > `receipt_items` создан миграцией `0003`; `product_id` без FK (products зоны B ещё нет),
 > есть `created_at`/`updated_at`. Заполняется клиентским OCR-путём (insert при сохранении
