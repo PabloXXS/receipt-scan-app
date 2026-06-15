@@ -42,9 +42,18 @@ use-case `SaveScannedReceipt(draft, {photoBytes})` — байты фото оп�
 Зона A: insert/select/delete `receipts` и `receipt_items` по `auth.uid()`.
 
 ## Взаимодействие с воркером
-Прямого нет: позиции распознаются на клиенте, чек сохраняется сразу `done`.
-Триггер `receipts_enqueue` всё ещё ставит сообщение в `pgmq` (воркер его не читает —
-безвредно). Фискальный API/воркерный путь — будущий цикл.
+**Переходное состояние (цикл серверного OCR, 2026-06-15..16).** Серверный путь
+распознавания реализован (планы `superpowers/plans/2026-06-15-*`): PHP-воркер читает
+`pgmq`, скачивает фото из Storage, вызывает OCR-сервис (PaddleOCR + магазин-агностичный
+парсер, `ocr-service/`), пишет `receipt_items` с `confidence` и ставит `status=review`;
+клиент подтверждает чек через RPC `confirm_receipt` (`status=done`, пересчёт `total`).
+См. спеку `superpowers/specs/2026-06-15-server-side-ocr-design.md`.
+
+Клиент пока ещё использует прежний путь (OCR на устройстве, сохранение сразу `done`).
+**Переключение клиента на async-поток** (`status=processing` → Realtime-подписка →
+экран-ревью с подсветкой confidence → `confirm_receipt`) и **удаление iOS-Vision** —
+оставшийся шаг (клиентский план №4). Фискальный API — отдельный будущий цикл
+(`FetchFiscalDataStep` пока Null-путь).
 
 ## Реализовано (цикл 2026-06-14 — Фаза 1, iOS)
 - Фото чека → Apple Vision (текст `ru` + QR) → парсер позиций (`ReceiptParserImpl`) →
