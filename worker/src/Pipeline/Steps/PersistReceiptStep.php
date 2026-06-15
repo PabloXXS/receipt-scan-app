@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /**
- * Назначение: шаг — записать receipt_items и обновить статус чека.
+ * Назначение: записать receipt_items и перевести чек в review.
  *
- * Роль в пайплайне: шаг 4 ReceiptProcessor.
+ * Роль в пайплайне: финальный шаг ReceiptProcessor (успешный путь).
  * Зависимости: Supabase\ReceiptRepository, Fiscal\Dto\ReceiptData.
  */
 
@@ -15,20 +15,32 @@ use ChekiPrices\Worker\Fiscal\Dto\ReceiptData;
 use ChekiPrices\Worker\Supabase\ReceiptRepository;
 
 /**
- * Сохранение позиций чека и финального статуса.
+ * Сохранение позиций чека и перевод чека в статус review.
  */
 final class PersistReceiptStep
 {
-    public function __construct(
-        private readonly ReceiptRepository $receipts,
-    ) {
+    public function __construct(private readonly ReceiptRepository $receipts)
+    {
     }
 
-    /**
-     * @throws \RuntimeException пока не реализовано.
-     */
-    public function run(string $receiptId, ReceiptData $receipt): void
+    /** Сохраняет позиции и ставит статус review с итогом (печатный или сумма позиций). */
+    public function run(string $receiptId, string $userId, ?string $familyId, ReceiptData $receipt): void
     {
-        throw new \RuntimeException('Not implemented');
+        $this->receipts->replaceItems($receiptId, $userId, $familyId, $receipt->items);
+        $total = $receipt->total ?? $this->sumItems($receipt);
+        $this->receipts->markReview($receiptId, $total);
+    }
+
+    /** Сумма позиций как запасной итог, если печатный total отсутствует. */
+    private function sumItems(ReceiptData $receipt): ?float
+    {
+        if ($receipt->items === []) {
+            return null;
+        }
+        $sum = 0.0;
+        foreach ($receipt->items as $i) {
+            $sum += $i->sum;
+        }
+        return round($sum, 2);
     }
 }
