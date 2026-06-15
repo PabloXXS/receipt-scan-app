@@ -79,3 +79,25 @@ jobs:
           else
             echo "Тестов пока нет — пропуск."
           fi
+
+  ocr-service:
+    name: Python (ocr-service)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ocr-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Установка зависимостей
+        run: pip install -r requirements-dev.txt && pip install -e .
+
+      - name: Тесты ядра (pytest)
+        run: pytest -q
+
+      - name: Сборка Docker-образа (с PaddleOCR)
+        run: docker build -t cheki-ocr .
