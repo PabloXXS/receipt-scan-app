@@ -11,7 +11,9 @@ Material 3 + собственный бренд: стоковые M3-виджет
 ## Токены (`app/lib/core/theme/`)
 
 - **Цвета:** палитра — `ColorScheme.fromSeed(AppColors.seed)` (seed `#2E7D5B`).
-  Семантические бренд-цвета — в `AppTokens`: `success`, `warning`, `priceUp`, `priceDown`.
+  Семантические бренд-цвета — в `AppTokens`: `success`, `warning`, `priceUp`, `priceDown`
+  и парные цвета текста на них `onSuccess`/`onWarning` (контраст AA в обеих темах —
+  используются в `AppBadge`, не хардкодить `Colors.white/black` в компонентах).
 - **Типографика:** Inter через `AppTypography` (google_fonts).
 - **Размеры/прочее:** `AppTokens` (ThemeExtension): spacing (`spaceXs..spaceXxl` = 4/8/12/16/24/32),
   radii (`radiusSm/Md/Lg/Pill` = 8/12/16/999), durations (`durationFast/Normal`).

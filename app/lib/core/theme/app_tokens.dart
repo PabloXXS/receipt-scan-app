@@ -32,6 +32,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.durationNormal,
     required this.success,
     required this.warning,
+    required this.onSuccess,
+    required this.onWarning,
     required this.priceUp,
     required this.priceDown,
   });
@@ -59,6 +61,13 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   final Color success;
   final Color warning;
+
+  /// Цвет текста/иконки на фоне [success] (контраст AA в обеих темах).
+  final Color onSuccess;
+
+  /// Цвет текста/иконки на фоне [warning] (контраст AA в обеих темах).
+  final Color onWarning;
+
   final Color priceUp;
   final Color priceDown;
 
@@ -80,6 +89,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     durationNormal: Duration(milliseconds: 250),
     success: AppColors.successLight,
     warning: AppColors.warningLight,
+    onSuccess: AppColors.onSuccessLight,
+    onWarning: AppColors.onWarningLight,
     priceUp: AppColors.priceUpLight,
     priceDown: AppColors.priceDownLight,
   );
@@ -102,6 +113,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     durationNormal: Duration(milliseconds: 250),
     success: AppColors.successDark,
     warning: AppColors.warningDark,
+    onSuccess: AppColors.onSuccessDark,
+    onWarning: AppColors.onWarningDark,
     priceUp: AppColors.priceUpDark,
     priceDown: AppColors.priceDownDark,
   );
@@ -124,6 +137,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Duration? durationNormal,
     Color? success,
     Color? warning,
+    Color? onSuccess,
+    Color? onWarning,
     Color? priceUp,
     Color? priceDown,
   }) {
@@ -144,6 +159,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
       durationNormal: durationNormal ?? this.durationNormal,
       success: success ?? this.success,
       warning: warning ?? this.warning,
+      onSuccess: onSuccess ?? this.onSuccess,
+      onWarning: onWarning ?? this.onWarning,
       priceUp: priceUp ?? this.priceUp,
       priceDown: priceDown ?? this.priceDown,
     );
@@ -169,6 +186,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
       durationNormal: t < 0.5 ? durationNormal : other.durationNormal,
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
+      onSuccess: Color.lerp(onSuccess, other.onSuccess, t)!,
+      onWarning: Color.lerp(onWarning, other.onWarning, t)!,
       priceUp: Color.lerp(priceUp, other.priceUp, t)!,
       priceDown: Color.lerp(priceDown, other.priceDown, t)!,
     );
