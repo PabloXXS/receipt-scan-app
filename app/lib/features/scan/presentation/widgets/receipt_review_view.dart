@@ -63,7 +63,9 @@ class ReceiptReviewView extends ConsumerWidget {
                 background: ColoredBox(color: scheme.errorContainer),
                 child: AppListTile(
                   leading: it.lowConfidence
-                      ? Icon(Icons.help_outline, color: scheme.tertiary)
+                      ? Icon(Icons.help_outline,
+                          color: scheme.tertiary,
+                          semanticLabel: 'Неуверенно распознано')
                       : null,
                   title: it.rawName,
                   subtitle: '${it.qty} × ${it.unitPrice}',

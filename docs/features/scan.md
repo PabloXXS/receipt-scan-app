@@ -14,28 +14,36 @@ UPDATE у `receipts` запрещён RLS, поэтому путь нельзя 
 в бакете (чистка — отдельная задача).
 
 ## Пользовательские сценарии
-- Сфотографировать чек (камера/галерея) → OCR распознаёт позиции и QR (УИ) →
-  ревью → сохранить `receipt` (`source = ocr`, `status = done`) с позициями.
+- Сфотографировать чек (камера/галерея) → загрузка фото + создание чека
+  (`source = ocr`, `status = processing`) → серверный OCR (воркер + OCR-сервис)
+  распознаёт позиции → клиент по Realtime получает `status = review` и позиции →
+  экран-ревью (с подсветкой неуверенно распознанных) → подтверждение
+  (`confirm_receipt` → `status = done`). QR (УИ) детектится на устройстве (QR-only).
 
 ## Экраны / UI
-Экран захвата (камера/галерея), индикатор распознавания, экран-ревью позиций
-(итог, удаление строки свайпом, «Сохранить»/«Отмена»), экран успеха.
+Экран захвата (камера/галерея), вид «Распознаём чек…» (processing, ожидание воркера),
+экран-ревью позиций (подсветка низкого `confidence` иконкой+бейджем, итог, удаление
+строки свайпом, «Подтвердить»/«Отмена»), экран успеха.
 
 ## Задействованные сущности БД
-`receipts` (insert: `status = done`, `source = ocr`, `qr_raw` = УИ, `total`
-(`ReceiptDraft.effectiveTotal` — печатный итог OCR, иначе сумма позиций),
-`purchased_at`; `country_code`/`family_id`/`currency` — триггером),
-`receipt_items` (позиции: `raw_name`, `qty`, `unit_price`, `sum`).
+`receipts` (insert клиентом: `status = processing`, `source = ocr`, `qr_raw` = УИ,
+`photo_path`; `country_code`/`family_id`/`currency` — триггером). Воркер пишет
+`receipt_items` (`raw_name`, `qty`, `unit_price`, `sum`, `confidence`) и ставит
+`status = review`. Подтверждение — RPC `confirm_receipt(p_receipt_id, p_items)`
+(`SECURITY DEFINER`): фиксирует позиции, `status = done`, пересчёт `total`.
 
 ## Репозитории и use-cases
-`ScanRepository.saveScannedReceipt(ReceiptDraft, {Uint8List? photoBytes})`;
-use-case `SaveScannedReceipt(draft, {photoBytes})` — байты фото опциональны и грузятся
-до INSERT. OCR — `ReceiptOcrEngine` (`VisionOcrEngine`), разбор — `ReceiptParser`
-(`ReceiptParserImpl`). `ScanController` кэширует байты последнего распознанного фото
-(`recognizePhoto`) и передаёт их в `save`; `reset` очищает кэш.
+`ScanRepository.startScan({Uint8List? photoBytes, String? qrRaw})` — загрузка фото
+(best-effort) + `INSERT receipts(status=processing)`, возвращает id;
+`ScanRepository.confirm(receiptId, items)` — вызов RPC `confirm_receipt`. QR — `QrScanner`
+(`VisionQrScanner`, нативный канал `scan/qr`). Realtime — `ReceiptRealtime`
+(`watchReceipt`/`watchItems`, supabase `.stream()`). `ScanController` (sealed-состояния
+Idle/Uploading/Processing/Review/Confirming/Saved/Error) подписывается на строку чека и
+по `review` собирает позиции; `confirm` подтверждает, `reset` сбрасывает и снимает
+подписку.
 
 ## Riverpod-провайдеры
-`scanControllerProvider`, `receiptOcrEngineProvider`, `receiptParserProvider`,
+`scanControllerProvider`, `qrScannerProvider`, `receiptRealtimeProvider`,
 `photoPickerProvider`, `scanRepositoryProvider`.
 
 ## Затрагиваемые RLS-политики
@@ -49,30 +57,32 @@ use-case `SaveScannedReceipt(draft, {photoBytes})` — байты фото оп�
 клиент подтверждает чек через RPC `confirm_receipt` (`status=done`, пересчёт `total`).
 См. спеку `superpowers/specs/2026-06-15-server-side-ocr-design.md`.
 
-Клиент пока ещё использует прежний путь (OCR на устройстве, сохранение сразу `done`).
-**Переключение клиента на async-поток** (`status=processing` → Realtime-подписка →
-экран-ревью с подсветкой confidence → `confirm_receipt`) и **удаление iOS-Vision** —
-оставшийся шаг (клиентский план №4). Фискальный API — отдельный будущий цикл
-(`FetchFiscalDataStep` пока Null-путь).
+Клиент переключён на async-поток (план `superpowers/plans/2026-06-16-client-async-scan.md`):
+`INSERT receipts(status=processing)` → Realtime-подписка → экран-ревью серверных позиций
+с подсветкой confidence → `confirm_receipt`. iOS-Vision обрезан до QR-only. Фискальный
+API — отдельный будущий цикл (`FetchFiscalDataStep` пока Null-путь).
 
-## Реализовано (цикл 2026-06-14 — Фаза 1, iOS)
-- Фото чека → Apple Vision (текст `ru` + QR) → парсер позиций (`ReceiptParserImpl`) →
-  ревью → сохранение `receipts`+`receipt_items` (`status = done`).
-- УИ из QR → `receipts.qr_raw`; валюта — триггером `receipts_fill_owner` из страны
-  (BY→BYN, RU→RUB, KZ→KZT).
-- Фото чека грузится в бакет `receipts` (JPEG, ≤1600px, q80) и его `photo_path`
-  пишется в INSERT (best-effort: при сбое — `photo_path = null`). Подробности — раздел
-  «Сохранение и обработка фото».
-- Источник позиций — OCR по фото: легального API «позиции по QR» в РБ нет
-  (`ch.info-center.by` за reCAPTCHA, без публичного API) — обоснование в спеке 2026-06-14.
-- Прежний путь «фото→Storage→pending» (цикл 2026-06-09) удалён как устаревший.
+## Реализовано (цикл серверного OCR, 2026-06-15..16)
+- **Сервер:** OCR-сервис (`ocr-service/`, PaddleOCR 2.x cyrillic + магазин-агностичный
+  парсер: геометрия + арифметика `a×b≈c` + классы лексем, без правил под магазин) →
+  PHP-воркер (`pgmq` → Storage → OCR-сервис → `receipt_items`+`confidence` →
+  `status=review`) → RPC `confirm_receipt` (`review→done`, пересчёт `total`).
+- **Клиент:** фото (камера/галерея) → upload + `INSERT receipts(status=processing)` →
+  Realtime → экран-ревью (подсветка низкого `confidence` иконкой+бейджем, удаление
+  свайпом) → `confirm_receipt`. QR (УИ) — нативный QR-only канал `scan/qr`.
+- **Удалено:** on-device текст-OCR (Apple Vision `VNRecognizeTextRequest`), Dart-парсер
+  `ReceiptParserImpl`, `ReceiptDraft`, `SaveScannedReceipt`, синхронное сохранение `done`.
+- Фото грузится в бакет `receipts` (JPEG, ≤1600px, q80), `photo_path` — в INSERT
+  (best-effort). Подробности — раздел «Сохранение и обработка фото».
+- Прежний клиентский Vision-путь (цикл 2026-06-14) заменён серверным OCR.
 
 ## Открытые вопросы / отложено
-- **Фаза 2 (реализовано, цикл 2026-06-14):** живое превью камеры в приложении
-  (плагин `camera`) + затвор → существующий OCR-конвейер. Захват вынесен в
-  `LiveCameraScreen`; контроллер принимает байты через `recognizePhoto`. Real-time
-  QR-оверлей сознательно не делался. Галерея сохранена.
-- Редактирование полей позиций (сейчас только удаление строки свайпом).
-- LLM-движок OCR (будущая платная фича); Android-движок OCR.
+- Полноценное редактирование полей позиций в ревью (сейчас — только удаление строки).
+- `AppBadge`: завести `onWarning/onSuccess`-токены вместо хардкода `Colors.white/black87`
+  (контраст в тёмной теме) — всплыло при дизайн-ревью.
+- `_loadReviewItems` использует `.stream().first`; рассмотреть одноразовый PostgREST-запрос.
+- Realtime требует включённой публикации на `receipts`/`receipt_items` (настройка проекта).
+- Апгрейд OCR на PaddleOCR 3.x / PP-OCRv5 (выше точность кириллицы).
 - Семейное правило RLS (`OR family_id = current_user_family_id()`) — в family-цикле.
-- Точность парсера на кириллице/длинных чеках — тюнинг на реальных чеках (устройство).
+- Точность парсера на реальных чеках разных сетей — тюнинг (относительные пороги,
+  одноколоночные чеки «только сумма»).
