@@ -17,7 +17,7 @@ use ChekiPrices\Worker\Fiscal\Dto\ItemData;
 /**
  * Репозиторий чеков (зона A) поверх service-role PostgREST (минует RLS).
  */
-final class ReceiptRepository
+class ReceiptRepository
 {
     public function __construct(
         private readonly SupabaseClient $client,

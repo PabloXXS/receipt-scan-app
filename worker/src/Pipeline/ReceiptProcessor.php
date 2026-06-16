@@ -18,7 +18,7 @@ use ChekiPrices\Worker\Supabase\ReceiptRepository;
 /**
  * Оркестратор обработки чека: распознавание позиций и перевод в review.
  */
-final class ReceiptProcessor
+class ReceiptProcessor
 {
     public function __construct(
         private readonly OcrFallbackStep $ocr,

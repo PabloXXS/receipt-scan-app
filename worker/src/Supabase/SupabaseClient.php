@@ -16,7 +16,7 @@ use GuzzleHttp\ClientInterface;
 /**
  * Низкоуровневый клиент Supabase (service role): PostgREST, RPC и Storage.
  */
-final class SupabaseClient
+class SupabaseClient
 {
     public function __construct(
         private readonly string $url,

@@ -17,7 +17,7 @@ use ChekiPrices\Worker\Supabase\ReceiptRepository;
 /**
  * Сохранение позиций чека и перевод чека в статус review.
  */
-final class PersistReceiptStep
+class PersistReceiptStep
 {
     public function __construct(private readonly ReceiptRepository $receipts)
     {

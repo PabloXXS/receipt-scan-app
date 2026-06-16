@@ -19,7 +19,7 @@ use GuzzleHttp\ClientInterface;
 /**
  * Клиент OCR-сервиса: шлёт байты фото и парсит ответ в ReceiptData.
  */
-final class OcrServiceClient
+class OcrServiceClient
 {
     public function __construct(
         private readonly string $baseUrl,

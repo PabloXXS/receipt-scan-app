@@ -18,7 +18,7 @@ use ChekiPrices\Worker\Supabase\SupabaseClient;
 /**
  * Скачивает фото чека из Storage и распознаёт позиции через OCR-сервис.
  */
-final class OcrFallbackStep
+class OcrFallbackStep
 {
     public function __construct(
         private readonly OcrServiceClient $ocr,

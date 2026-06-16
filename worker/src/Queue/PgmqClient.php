@@ -16,7 +16,7 @@ use ChekiPrices\Worker\Supabase\SupabaseClient;
 /**
  * Низкоуровневые операции над очередью pgmq поверх RPC-обёрток.
  */
-final class PgmqClient
+class PgmqClient
 {
     public function __construct(private readonly SupabaseClient $supabase)
     {
