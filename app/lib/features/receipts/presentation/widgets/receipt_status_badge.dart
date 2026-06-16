@@ -23,6 +23,7 @@ class ReceiptStatusBadge extends StatelessWidget {
     final tone = switch (status) {
       ReceiptStatus.pending => AppBadgeTone.neutral,
       ReceiptStatus.processing => AppBadgeTone.warning,
+      ReceiptStatus.review => AppBadgeTone.warning,
       ReceiptStatus.done => AppBadgeTone.success,
       ReceiptStatus.failed => AppBadgeTone.error,
     };

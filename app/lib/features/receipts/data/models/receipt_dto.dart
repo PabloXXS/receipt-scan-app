@@ -16,7 +16,8 @@ const String kReceiptColumns =
     'photo_path, stores(name)';
 
 /// Колонки позиции чека.
-const String kReceiptItemColumns = 'id, raw_name, qty, unit_price, sum';
+const String kReceiptItemColumns =
+    'id, raw_name, qty, unit_price, sum, confidence';
 
 /// numeric из PostgREST может прийти как num или String — приводим к double.
 double? _toDouble(Object? v) {
@@ -52,4 +53,5 @@ ReceiptItem receiptItemFromRow(Map<String, dynamic> row) => ReceiptItem(
       qty: _toDouble(row['qty']) ?? 0,
       unitPrice: _toDouble(row['unit_price']) ?? 0,
       sum: _toDouble(row['sum']) ?? 0,
+      confidence: _toDouble(row['confidence']),
     );

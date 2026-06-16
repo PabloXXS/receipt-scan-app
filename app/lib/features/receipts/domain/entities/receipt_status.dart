@@ -14,6 +14,9 @@ enum ReceiptStatus {
   /// Обрабатывается воркером.
   processing('Обработка'),
 
+  /// Ожидает подтверждения пользователем после распознавания.
+  review('На проверку'),
+
   /// Обработан успешно.
   done('Готово'),
 
@@ -28,6 +31,7 @@ enum ReceiptStatus {
   /// Маппинг из значения колонки `receipts.status`. Неизвестное → [pending].
   static ReceiptStatus fromDb(String? value) => switch (value) {
         'processing' => ReceiptStatus.processing,
+        'review' => ReceiptStatus.review,
         'done' => ReceiptStatus.done,
         'failed' => ReceiptStatus.failed,
         _ => ReceiptStatus.pending,
