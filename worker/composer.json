@@ -2,6 +2,7 @@
     "name": "chekiprices/worker",
     "description": "ChekiPrices receipt-processing worker (pgmq consumer).",
     "type": "project",
+    "license": "proprietary",
     "require": {
         "php": ">=8.2",
         "guzzlehttp/guzzle": "^7.8",
