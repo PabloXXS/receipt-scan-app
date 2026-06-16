@@ -6,9 +6,9 @@ part of 'scan_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$scanControllerHash() => r'9d82df9a24a980668d31e7c968927cd968822155';
+String _$scanControllerHash() => r'4164e17dfe96e90c1dc3430fd79fb8a69781baee';
 
-/// Управляет потоком: захват → OCR → парсинг → ревью → сохранение.
+/// Управляет потоком: фото → upload+insert processing → Realtime → ревью → confirm.
 ///
 /// Copied from [ScanController].
 @ProviderFor(ScanController)
