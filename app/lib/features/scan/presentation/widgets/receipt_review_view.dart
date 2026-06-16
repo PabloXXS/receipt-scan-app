@@ -1,9 +1,9 @@
-/// Назначение: вид ревью распознанного чека — позиции, итог, сохранить/отмена.
+/// Назначение: вид ревью серверных позиций чека — подсветка confidence, подтвердить/отмена.
 ///
 /// Слой: presentation
 /// Фича: scan
 /// Зависимости: flutter, flutter_riverpod, shared/components, core/theme,
-///   domain/entities/receipt_draft.dart, presentation/controllers/scan_controller.dart.
+///   domain/entities/scanned_item.dart, presentation/controllers/scan_controller.dart.
 /// Ключевые типы: ReceiptReviewView.
 library;
 
@@ -12,24 +12,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_tokens.dart';
 import '../../../../shared/components/components.dart';
-import '../../domain/entities/receipt_draft.dart';
+import '../../domain/entities/scanned_item.dart';
 import '../controllers/scan_controller.dart';
 
-/// Список распознанных позиций с возможностью удалить строку и сохранить чек.
+/// Список распознанных сервером позиций: подсветка сомнительных, удаление, подтверждение.
 class ReceiptReviewView extends ConsumerWidget {
   const ReceiptReviewView({
     super.key,
-    required this.draft,
+    required this.items,
     this.saving = false,
     this.error,
   });
 
-  final ReceiptDraft draft;
+  final List<ScannedItem> items;
   final bool saving;
   final String? error;
 
-  // Валюта для отображения до сохранения (фактическую проставит триггер по стране).
+  // Валюта для отображения до подтверждения (фактическую проставит триггер по стране).
   static const _currency = 'BYN';
+
+  double get _sum => items.fold(0, (a, i) => a + i.sum);
+  bool get _hasLowConfidence => items.any((i) => i.lowConfidence);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,25 +43,28 @@ class ReceiptReviewView extends ConsumerWidget {
 
     return Column(
       children: [
-        if (!draft.totalMatches)
+        if (_hasLowConfidence)
           Padding(
             padding: EdgeInsets.all(tokens.spaceMd),
             child: const AppBadge(
-              label: 'Сумма позиций не сходится с итогом — проверьте',
+              label: 'Часть позиций распознана неуверенно — проверьте',
               tone: AppBadgeTone.warning,
             ),
           ),
         Expanded(
           child: ListView.builder(
-            itemCount: draft.items.length,
+            itemCount: items.length,
             itemBuilder: (context, i) {
-              final it = draft.items[i];
+              final it = items[i];
               return Dismissible(
                 key: ValueKey('item_${i}_${it.rawName}'),
                 direction: DismissDirection.endToStart,
                 onDismissed: (_) => controller.removeItem(i),
                 background: ColoredBox(color: scheme.errorContainer),
                 child: AppListTile(
+                  leading: it.lowConfidence
+                      ? Icon(Icons.help_outline, color: scheme.tertiary)
+                      : null,
                   title: it.rawName,
                   subtitle: '${it.qty} × ${it.unitPrice}',
                   trailing: MoneyText(it.sum, currencyCode: _currency),
@@ -76,23 +82,24 @@ class ReceiptReviewView extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Итого', style: textTheme.titleMedium),
-                  MoneyText(draft.total ?? draft.itemsSum,
-                      currencyCode: _currency),
+                  MoneyText(_sum, currencyCode: _currency),
                 ],
               ),
               if (error != null) ...[
                 SizedBox(height: tokens.spaceSm),
-                Text(error!,
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium?.copyWith(color: scheme.error)),
+                Text(
+                  error!,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(color: scheme.error),
+                ),
               ],
               SizedBox(height: tokens.spaceLg),
               AppButton(
-                label: 'Сохранить',
-                icon: Icons.save_alt,
+                label: 'Подтвердить',
+                icon: Icons.check,
                 expanded: true,
                 loading: saving,
-                onPressed: saving ? null : controller.save,
+                onPressed: saving ? null : controller.confirm,
               ),
               SizedBox(height: tokens.spaceSm),
               AppButton(

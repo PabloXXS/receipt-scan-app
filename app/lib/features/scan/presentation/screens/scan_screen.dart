@@ -26,17 +26,40 @@ class ScanScreen extends ConsumerWidget {
 
     final body = switch (state) {
       ScanIdle() => const ScanCaptureView(),
-      ScanError(:final draft) when draft == null =>
-        ScanCaptureView(error: state.failure.message),
-      ScanRecognizing() => const AppLoader(),
-      ScanReview(:final draft) => ReceiptReviewView(draft: draft),
-      ScanSaving(:final draft) => ReceiptReviewView(draft: draft, saving: true),
-      ScanError(:final draft) =>
-        ReceiptReviewView(draft: draft!, error: state.failure.message),
+      ScanError() => ScanCaptureView(error: state.failure.message),
+      ScanUploading() => const AppLoader(),
+      ScanProcessing() => const _ProcessingView(),
+      ScanReview(:final items) => ReceiptReviewView(items: items),
+      ScanConfirming(:final items) =>
+        ReceiptReviewView(items: items, saving: true),
       ScanSaved() => const _SavedView(),
     };
 
     return AppScaffold(title: 'Сканировать', body: body);
+  }
+}
+
+/// Ожидание результата серверного OCR.
+class _ProcessingView extends StatelessWidget {
+  const _ProcessingView();
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Padding(
+      padding: EdgeInsets.all(tokens.spaceLg),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const AppLoader(),
+          SizedBox(height: tokens.spaceLg),
+          Text(
+            'Распознаём чек…',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ],
+      ),
+    );
   }
 }
 
