@@ -13,4 +13,19 @@ abstract final class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String checkEmail = '/check-email';
   static const String resetPassword = '/reset-password';
+
+  // Вкладки нижнего меню.
+  static const String receipts = '/receipts';
+  static const String statistics = '/statistics';
+  static const String scan = '/scan';
+  static const String profile = '/profile';
+
+  /// Редактирование профиля (имя, аватар).
+  static const String editProfile = '/profile/edit';
+
+  /// Шаблон маршрута деталей чека (вложен в ветку receipts).
+  static const String receiptDetail = '/receipts/:id';
+
+  /// Путь к деталям конкретного чека.
+  static String receiptDetailPath(String id) => '/receipts/$id';
 }

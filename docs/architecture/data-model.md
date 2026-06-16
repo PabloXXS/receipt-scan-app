@@ -7,14 +7,40 @@ RLS: доступ по `auth.uid() = user_id` (для чеков расшире�
 
 | Таблица | Ключевые поля | Назначение |
 |---|---|---|
-| `profiles` | `id` (=auth.uid), `country_code`, `family_id` (nullable), `display_name`, `settings jsonb` | Профиль; `country_code` — мапер к фискальному провайдеру |
+| `profiles` | `id` (=auth.uid), `country_code`, `family_id` (nullable), `display_name`, `avatar_url` (nullable), `settings jsonb` | Профиль; `country_code` — мапер к фискальному провайдеру; `avatar_url` — публичный URL из Storage-бакета `avatars` (зона A, RLS по `auth.uid`) |
 
 > `profiles` создаётся автоматически триггером `handle_new_user()` (`SECURITY DEFINER`)
 > на `auth.users`; `country_code`/`display_name` берутся из `raw_user_meta_data`.
 
-| `receipts` | `id`, `user_id`, `family_id` (nullable), `country_code`, `source` (qr/ocr), `status` (pending/processing/done/failed), `qr_raw`, `photo_path`, `store_id`, `purchased_at`, `total`, `currency`, `error` | «Сырой» и обработанный чек |
+> Storage-бакет `avatars` (зона A, публичный): чтение по публичному URL доступно
+> всем (бакет `public`), а RLS-операции (`insert/update/select/delete`) ограничены
+> своей папкой `{auth.uid}/...` для `authenticated`. `select`-own нужен, т.к.
+> загрузка идёт `upsert`-ом. Ссылка на аватар — в `profiles.avatar_url`. Миграции:
+> `0005_profile_avatar.sql` (бакет+RLS), `0006_avatars_drop_public_listing.sql`
+> (убрать листинг), `0007_avatars_select_own.sql` (scoped select для upsert).
+
+| `receipts` | `id`, `user_id`, `family_id` (nullable), `country_code`, `source` (qr/ocr), `status` (pending/processing/review/done/failed), `qr_raw`, `photo_path`, `store_id`, `purchased_at`, `total`, `currency`, `error` | «Сырой» и обработанный чек |
 | `receipt_items` | `id`, `receipt_id`, `user_id`, `family_id` (nullable), `raw_name`, `product_id`, `qty`, `unit_price`, `sum` | Позиции чека |
 | `loyalty_cards` | `id`, `user_id`, `chain_id`, `barcode`, `barcode_format`, `title`, `color` | Карты лояльности |
+
+> `receipts.store_id` ссылается на `stores` через FK `receipts_store_id_fkey`
+> (`on delete set null`), добавленный миграцией `0004_stores_chains.sql`. Триггеры: `receipts_fill_owner`
+> (автозаполнение `user_id`/`country_code`/`family_id` из профиля), `receipts_enqueue`
+> (постановка `{receipt_id}` в очередь `pgmq` `receipts_processing`). RLS пока только
+> по `user_id = auth.uid()` — семейное правило добавится в family-цикле.
+
+> RPC `confirm_receipt(p_receipt_id uuid, p_items jsonb)` (`SECURITY DEFINER`, миграция
+> `0008`) — подтверждение чека после ревью: проверяет владение (`auth.uid()`) и статус
+> (`review`), заменяет `receipt_items` подтверждёнными позициями, ставит `status=done` и
+> пересчитывает `total` из суммы позиций. Обходит запрет клиентского `UPDATE receipts`,
+> не расширяя UPDATE-RLS; доступен только роли `authenticated`. Статус-поток:
+> `pending → processing → review → done | failed`. Зона A.
+
+> `receipt_items` создан миграцией `0003`; `product_id` без FK (products зоны B ещё нет),
+> есть `created_at`/`updated_at`. Заполняется клиентским OCR-путём (insert при сохранении
+> скана; триггер `receipt_items_fill_owner` ставит `user_id`/`family_id`). insert-RLS
+> дополнительно проверяет владение чеком. `receipts.currency` проставляется триггером
+> `receipts_fill_owner` из `country_code` (BY→BYN, RU→RUB, KZ→KZT).
 
 ## Зона B — общий справочник
 RLS: `select` для всех авторизованных; `insert/update` — только service role (воркер).
@@ -27,6 +53,12 @@ RLS: `select` для всех авторизованных; `insert/update` — 
 | `stores` | `id`, `chain_id`, `name`, `address`, `geo` (lat/lng), `region`, `country_code` | Торговые точки |
 | `chains` | `id`, `name`, `country_code` | Торговые сети |
 | `fiscal_providers` | `country_code`, `provider_key`, `config jsonb` | Мапинг страна → стратегия воркера |
+
+> `stores` и `chains` созданы миграцией `0004_stores_chains.sql` (RLS зоны B: `select`
+> для `authenticated`, запись — только service-role; клиентских политик записи нет).
+> `stores.geo` реализован парой колонок `lat`/`lng` (`double precision`); `chain_id` —
+> FK на `chains` (`on delete set null`). `products`/`product_aliases`/`categories`/
+> `fiscal_providers` пока не созданы (reference/worker-цикл).
 
 ## Зона C — обезличенная карта цен
 RLS: `select` для всех авторизованных; пишет только воркер. **Нет `user_id`/`family_id`.**

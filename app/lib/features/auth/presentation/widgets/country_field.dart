@@ -2,20 +2,15 @@
 ///
 /// Слой: presentation
 /// Фича: auth
-/// Зависимости: flutter material, core/theme/app_tokens.dart.
-/// Ключевые типы: CountryField, kSupportedCountries.
+/// Зависимости: flutter material, core/theme/app_tokens.dart,
+///   core/constants/supported_countries.dart.
+/// Ключевые типы: CountryField.
 library;
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/supported_countries.dart';
 import '../../../../core/theme/app_tokens.dart';
-
-/// Поддерживаемые страны (код → название). Заглушка v1.
-const Map<String, String> kSupportedCountries = {
-  'BY': 'Беларусь',
-  'RU': 'Россия',
-  'KZ': 'Казахстан',
-};
 
 /// Выпадающий список выбора страны.
 class CountryField extends StatelessWidget {

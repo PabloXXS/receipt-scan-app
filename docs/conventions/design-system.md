@@ -10,8 +10,10 @@ Material 3 + собственный бренд: стоковые M3-виджет
 
 ## Токены (`app/lib/core/theme/`)
 
-- **Цвета:** палитра — `ColorScheme.fromSeed(AppColors.seed)` (seed `#2E7D5B`).
-  Семантические бренд-цвета — в `AppTokens`: `success`, `warning`, `priceUp`, `priceDown`.
+- **Цвета:** палитра — `ColorScheme.fromSeed(AppColors.seed)` (seed `#2563EB`, royal blue).
+  Семантические бренд-цвета — в `AppTokens`: `success`, `warning`, `priceUp`, `priceDown`
+  и парные цвета текста на них `onSuccess`/`onWarning` (контраст AA в обеих темах —
+  используются в `AppBadge`, не хардкодить `Colors.white/black` в компонентах).
 - **Типографика:** Inter через `AppTypography` (google_fonts).
 - **Размеры/прочее:** `AppTokens` (ThemeExtension): spacing (`spaceXs..spaceXxl` = 4/8/12/16/24/32),
   radii (`radiusSm/Md/Lg/Pill` = 8/12/16/999), durations (`durationFast/Normal`).
@@ -31,18 +33,69 @@ Material 3 + собственный бренд: стоковые M3-виджет
 | `AppBadge` | Бейдж-статус; `tone` (`neutral/success/warning/error`). |
 | `AppScaffold` | Каркас экрана; `title`, `body`, `actions`, `floatingActionButton`. |
 | `AppLoader` | Индикатор загрузки. |
+| `AppSkeleton` | Скелетон-загрузка; пульсирующий плейсхолдер. `height` обязательно, `width` null = max, `shape` = circle для аватара. |
 | `AppEmptyState` | Пустое состояние; `message`, `icon`. |
 | `AppErrorView` | Ошибка; `message`, `onRetry`. |
 | `MoneyText` | Сумма по валюте/локали (доменный). |
 | `PriceDeltaText` | Изменение цены ↑/↓ цветом (доменный). |
 
+## Карта выбора компонента (ОБЯЗАТЕЛЬНО для Claude и людей)
+
+Перед вёрсткой любого UI найди потребность в таблице и возьми указанный компонент.
+**Не придумывай новые компоненты и не верстай локальные аналоги каталога в фичах.**
+
+### Потребность → компонент каталога
+
+| Нужно | Используй | Запрещённый аналог |
+|---|---|---|
+| Любая кнопка (CTA, второстепенная, текстовая, опасная) | `AppButton` (`variant`, `loading`, `icon`, `expanded`) | `ElevatedButton`, `FilledButton`, `TextButton`, `OutlinedButton` |
+| Поле ввода (текст, пароль, e-mail, число) | `AppTextField` | `TextField`, `TextFormField` |
+| Карточка-контейнер (в т.ч. кликабельная) | `AppCard` | `Card`, `InkWell`+`Container` |
+| Строка списка | `AppListTile` | `ListTile` |
+| Фильтр/переключаемый чип | `AppChip` | `Chip`, `FilterChip`, `ChoiceChip`, `ActionChip` |
+| Статусная метка (успех/предупреждение/ошибка) | `AppBadge` (`tone`) | `Badge`, самодельный `Container` с цветом |
+| Каркас экрана (AppBar, SafeArea, FAB) | `AppScaffold` | голый `Scaffold`+`AppBar` |
+| Индикатор загрузки экрана/блока | `AppLoader` | `CircularProgressIndicator` напрямую |
+| Скелетон-плейсхолдер части экрана | `AppSkeleton` | самодельный `Container` с анимацией |
+| Пустое состояние («ничего нет») | `AppEmptyState` | самодельная колонка с иконкой |
+| Состояние ошибки с повтором | `AppErrorView` (`onRetry`) | самодельная колонка с кнопкой |
+| Денежная сумма | `MoneyText` | ручной `NumberFormat` в фиче |
+| Изменение цены (рост/падение) | `PriceDeltaText` | ручное форматирование с цветом |
+
+### Разрешённый стоковый Material 3 (обёртки пока нет)
+
+Эти виджеты можно использовать напрямую — тема стилизует их сама; цвета/отступы
+только из токенов:
+
+- **Уведомления:** `ScaffoldMessenger.of(context).showSnackBar(SnackBar(...))`.
+- **Диалоги:** `showDialog` + `AlertDialog`; **шторки:** `showModalBottomSheet`.
+- **Переключатели форм:** `Switch`, `Checkbox`, `Radio`, `Slider`.
+- **Навигация:** `NavigationBar`, `TabBar` (когда появится shell-навигация).
+- **Прочее:** `Icon`, `Text` (стиль только из `textTheme`), `Divider`,
+  `RefreshIndicator`, `Tooltip`.
+- **Разметка:** `Row/Column/Stack/Padding/Expanded/SizedBox/ListView/GridView/...` —
+  без ограничений, отступы из токенов.
+
+⚠️ Не используй `*.adaptive`-конструкторы (`Switch.adaptive` и т.п.) — привязка к
+платформенным эвристикам Flutter хрупка при грядущем выносе Material из SDK.
+
+### Если компонента нет в карте
+
+1. **Сначала** собери UI композицией существующих компонентов + разметка.
+2. Если нужен интерактивный примитив из списка «разрешённый стоковый M3» — бери
+   стоковый, стилизуя только токенами.
+3. Если паттерн повторяется (≥2 экранов) — заведи компонент в `shared/components/`
+   по чек-листу из раздела «Расширение каталога» и добавь строку в карту выше.
+4. **Никогда** не создавай в `lib/features/**` приватный виджет, дублирующий
+   назначение компонента каталога (свой button/card/badge/loader и т.д.).
+
 ## Правила (ОБЯЗАТЕЛЬНО)
 
-1. В `lib/features/**` UI-примитивы — **только из каталога** (`AppButton`, `AppTextField`,
-   `AppCard`, `AppListTile`, `AppChip`, `AppBadge`, …). Прямые `ElevatedButton`/`FilledButton`/
-   `TextButton`/`OutlinedButton`/`TextField`/`Card`/`ListTile`/`Chip` — запрещены.
-2. Стоковый Material — только для разметки (`Row/Column/Stack/Padding/Expanded/SizedBox/
-   ListView/GridView/...`); каркас экрана — `AppScaffold`.
+1. В `lib/features/**` UI-примитивы — **только из каталога** по карте выше. Прямые
+   `ElevatedButton`/`FilledButton`/`TextButton`/`OutlinedButton`/`TextField`/`Card`/
+   `ListTile`/`Chip` — запрещены.
+2. Стоковый Material — только из списка «разрешённый стоковый M3» и разметка;
+   каркас экрана — `AppScaffold`.
 3. **Никакого хардкода** цвета/типографики/отступов/радиусов — только токены. Запрещены
    `Colors.*`, `Color(0x..)`, сырые `TextStyle(`, магические числа отступов/радиусов.
 4. Новый компонент — **только в `shared/components/`** и только при повторе паттерна

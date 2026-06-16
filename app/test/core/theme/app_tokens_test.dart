@@ -18,6 +18,15 @@ void main() {
     expect(AppTokens.dark.priceUp, AppColors.priceUpDark);
   });
 
+  test('on-цвета бейджа берутся из AppColors и тема-зависимы', () {
+    expect(AppTokens.light.onSuccess, AppColors.onSuccessLight);
+    expect(AppTokens.dark.onSuccess, AppColors.onSuccessDark);
+    expect(AppTokens.light.onWarning, AppColors.onWarningLight);
+    expect(AppTokens.dark.onWarning, AppColors.onWarningDark);
+    // success: тёмный фон в light (белый текст) vs светлый фон в dark (чёрный текст)
+    expect(AppTokens.light.onSuccess, isNot(AppTokens.dark.onSuccess));
+  });
+
   test('lerp при t=0 возвращает исходные цвета', () {
     final r = AppTokens.light.lerp(AppTokens.dark, 0);
     expect(r.priceUp, AppColors.priceUpLight);

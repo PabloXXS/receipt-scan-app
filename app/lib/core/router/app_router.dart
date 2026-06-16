@@ -1,11 +1,11 @@
-/// Назначение: конфигурация навигации (GoRouter) с redirect по auth-состоянию.
+/// Назначение: конфигурация навигации (GoRouter) с redirect и нижним меню.
 ///
 /// Слой: core/router
-/// Зависимости: go_router, flutter_riverpod, core/auth, core/supabase, фича auth.
+/// Зависимости: go_router, flutter_riverpod, core/auth, core/navigation,
+///   core/supabase, экраны фич auth/receipts/statistics/scan/profile.
 /// Ключевые типы: appRouterProvider.
 library;
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,7 +14,14 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/profile/presentation/screens/settings_screen.dart';
+import '../../features/receipts/presentation/screens/receipt_details_screen.dart';
+import '../../features/receipts/presentation/screens/receipts_screen.dart';
+import '../../features/scan/presentation/screens/scan_screen.dart';
+import '../../features/statistics/presentation/screens/statistics_screen.dart';
 import '../auth/auth_providers.dart';
+import '../navigation/main_shell.dart';
 import '../supabase/supabase_providers.dart';
 import 'app_routes.dart';
 import 'auth_redirect.dart';
@@ -25,16 +32,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshStream = GoRouterRefreshStream(client.auth.onAuthStateChange);
   ref.onDispose(refreshStream.dispose);
   return GoRouter(
-    initialLocation: AppRoutes.signIn,
+    initialLocation: AppRoutes.receipts,
     refreshListenable: refreshStream,
     redirect: (context, state) => authRedirect(
       isAuthenticated: client.auth.currentSession != null,
       location: state.matchedLocation,
     ),
     routes: [
+      // Корневой путь — защитный redirect на первую вкладку (для cold deep-links
+      // на '/'); основную развилку auth/гость делает глобальный redirect.
       GoRoute(
         path: AppRoutes.home,
-        builder: (context, state) => const _HomePlaceholder(),
+        redirect: (context, state) => AppRoutes.receipts,
       ),
       GoRoute(
         path: AppRoutes.signIn,
@@ -56,15 +65,56 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.resetPassword,
         builder: (context, state) => const ResetPasswordScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.editProfile,
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            MainShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.receipts,
+                builder: (context, state) => const ReceiptsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) => ReceiptDetailsScreen(
+                      id: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.statistics,
+                builder: (context, state) => const StatisticsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.scan,
+                builder: (context, state) => const ScanScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const SettingsScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
     ],
   );
 });
-
-/// Временная заглушка главного экрана (до реализации навигации фич).
-class _HomePlaceholder extends StatelessWidget {
-  const _HomePlaceholder();
-
-  @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text('ChekiPrices')));
-}

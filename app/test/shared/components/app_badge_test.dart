@@ -20,4 +20,38 @@ void main() {
     final decoration = container.decoration! as BoxDecoration;
     expect(decoration.color, AppTokens.light.success);
   });
+
+  Color badgeTextColor(WidgetTester tester) {
+    final text = tester.widget<Text>(
+      find.descendant(of: find.byType(AppBadge), matching: find.byType(Text)),
+    );
+    return text.style!.color!;
+  }
+
+  testWidgets('текст бейджа берёт onSuccess/onWarning из токенов темы (light)',
+      (tester) async {
+    await pumpComponent(
+      tester,
+      const AppBadge(label: 'OK', tone: AppBadgeTone.success),
+    );
+    expect(badgeTextColor(tester), AppTokens.light.onSuccess);
+
+    await pumpComponent(
+      tester,
+      const AppBadge(label: 'Внимание', tone: AppBadgeTone.warning),
+    );
+    expect(badgeTextColor(tester), AppTokens.light.onWarning);
+  });
+
+  testWidgets('текст бейджа тема-зависим (dark): onSuccess отличается от light',
+      (tester) async {
+    await pumpComponent(
+      tester,
+      const AppBadge(label: 'OK', tone: AppBadgeTone.success),
+      brightness: Brightness.dark,
+    );
+    expect(badgeTextColor(tester), AppTokens.dark.onSuccess);
+    // В тёмной теме фон success светлый → текст не белый (в отличие от light).
+    expect(AppTokens.dark.onSuccess, isNot(AppTokens.light.onSuccess));
+  });
 }

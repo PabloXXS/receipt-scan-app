@@ -40,7 +40,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         .read(authControllerProvider.notifier)
         .resetPassword(_password.text);
     if (!ref.read(authControllerProvider).hasError && mounted) {
-      context.go(AppRoutes.home);
+      context.go(AppRoutes.receipts);
     }
   }
 

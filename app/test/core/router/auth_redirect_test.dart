@@ -6,6 +6,13 @@ void main() {
   group('authRedirect', () {
     test('неавторизованный на приватном маршруте → на вход', () {
       expect(
+        authRedirect(isAuthenticated: false, location: AppRoutes.receipts),
+        AppRoutes.signIn,
+      );
+    });
+
+    test('неавторизованный на home → на вход', () {
+      expect(
         authRedirect(isAuthenticated: false, location: AppRoutes.home),
         AppRoutes.signIn,
       );
@@ -18,16 +25,23 @@ void main() {
       );
     });
 
-    test('авторизованный на экране входа → на главную', () {
+    test('авторизованный на экране входа → на чеки', () {
       expect(
         authRedirect(isAuthenticated: true, location: AppRoutes.signIn),
-        AppRoutes.home,
+        AppRoutes.receipts,
       );
     });
 
-    test('авторизованный на приватном маршруте → без редиректа', () {
+    test('авторизованный на home → на чеки', () {
       expect(
         authRedirect(isAuthenticated: true, location: AppRoutes.home),
+        AppRoutes.receipts,
+      );
+    });
+
+    test('авторизованный на вкладке → без редиректа', () {
+      expect(
+        authRedirect(isAuthenticated: true, location: AppRoutes.statistics),
         isNull,
       );
     });

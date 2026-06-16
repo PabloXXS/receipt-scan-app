@@ -69,3 +69,9 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- Триггерные функции не должны быть доступны как RPC: PostgREST экспонирует
+-- public-функции. Отзыв EXECUTE убирает их из API; триггеры продолжают работать
+-- (срабатывание триггера не требует EXECUTE у вызывающей роли).
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.set_updated_at() from public, anon, authenticated;

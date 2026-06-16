@@ -26,10 +26,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.radiusMd,
     required this.radiusLg,
     required this.radiusPill,
+    required this.avatarRadiusSm,
+    required this.avatarRadiusLg,
     required this.durationFast,
     required this.durationNormal,
     required this.success,
     required this.warning,
+    required this.onSuccess,
+    required this.onWarning,
     required this.priceUp,
     required this.priceDown,
   });
@@ -46,11 +50,24 @@ class AppTokens extends ThemeExtension<AppTokens> {
   final double radiusLg;
   final double radiusPill;
 
+  /// Радиус аватара компактного размера (список, шапка).
+  final double avatarRadiusSm;
+
+  /// Радиус аватара крупного размера (экран редактирования профиля).
+  final double avatarRadiusLg;
+
   final Duration durationFast;
   final Duration durationNormal;
 
   final Color success;
   final Color warning;
+
+  /// Цвет текста/иконки на фоне [success] (контраст AA в обеих темах).
+  final Color onSuccess;
+
+  /// Цвет текста/иконки на фоне [warning] (контраст AA в обеих темах).
+  final Color onWarning;
+
   final Color priceUp;
   final Color priceDown;
 
@@ -66,10 +83,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
     radiusMd: 12,
     radiusLg: 16,
     radiusPill: 999,
+    avatarRadiusSm: 24,
+    avatarRadiusLg: 48,
     durationFast: Duration(milliseconds: 150),
     durationNormal: Duration(milliseconds: 250),
     success: AppColors.successLight,
     warning: AppColors.warningLight,
+    onSuccess: AppColors.onSuccessLight,
+    onWarning: AppColors.onWarningLight,
     priceUp: AppColors.priceUpLight,
     priceDown: AppColors.priceDownLight,
   );
@@ -86,10 +107,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
     radiusMd: 12,
     radiusLg: 16,
     radiusPill: 999,
+    avatarRadiusSm: 24,
+    avatarRadiusLg: 48,
     durationFast: Duration(milliseconds: 150),
     durationNormal: Duration(milliseconds: 250),
     success: AppColors.successDark,
     warning: AppColors.warningDark,
+    onSuccess: AppColors.onSuccessDark,
+    onWarning: AppColors.onWarningDark,
     priceUp: AppColors.priceUpDark,
     priceDown: AppColors.priceDownDark,
   );
@@ -106,10 +131,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
     double? radiusMd,
     double? radiusLg,
     double? radiusPill,
+    double? avatarRadiusSm,
+    double? avatarRadiusLg,
     Duration? durationFast,
     Duration? durationNormal,
     Color? success,
     Color? warning,
+    Color? onSuccess,
+    Color? onWarning,
     Color? priceUp,
     Color? priceDown,
   }) {
@@ -124,10 +153,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
       radiusMd: radiusMd ?? this.radiusMd,
       radiusLg: radiusLg ?? this.radiusLg,
       radiusPill: radiusPill ?? this.radiusPill,
+      avatarRadiusSm: avatarRadiusSm ?? this.avatarRadiusSm,
+      avatarRadiusLg: avatarRadiusLg ?? this.avatarRadiusLg,
       durationFast: durationFast ?? this.durationFast,
       durationNormal: durationNormal ?? this.durationNormal,
       success: success ?? this.success,
       warning: warning ?? this.warning,
+      onSuccess: onSuccess ?? this.onSuccess,
+      onWarning: onWarning ?? this.onWarning,
       priceUp: priceUp ?? this.priceUp,
       priceDown: priceDown ?? this.priceDown,
     );
@@ -147,10 +180,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
       radiusMd: lerpDouble(radiusMd, other.radiusMd, t)!,
       radiusLg: lerpDouble(radiusLg, other.radiusLg, t)!,
       radiusPill: lerpDouble(radiusPill, other.radiusPill, t)!,
+      avatarRadiusSm: lerpDouble(avatarRadiusSm, other.avatarRadiusSm, t)!,
+      avatarRadiusLg: lerpDouble(avatarRadiusLg, other.avatarRadiusLg, t)!,
       durationFast: t < 0.5 ? durationFast : other.durationFast,
       durationNormal: t < 0.5 ? durationNormal : other.durationNormal,
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
+      onSuccess: Color.lerp(onSuccess, other.onSuccess, t)!,
+      onWarning: Color.lerp(onWarning, other.onWarning, t)!,
       priceUp: Color.lerp(priceUp, other.priceUp, t)!,
       priceDown: Color.lerp(priceDown, other.priceDown, t)!,
     );

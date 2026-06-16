@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,6 +15,7 @@ import 'core/auth/auth_providers.dart';
 import 'core/router/app_router.dart';
 import 'core/router/app_routes.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_mode_controller.dart';
 
 /// Корневой виджет приложения.
 class ChekiPricesApp extends ConsumerStatefulWidget {
@@ -43,11 +45,21 @@ class _ChekiPricesAppState extends ConsumerState<ChekiPricesApp> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeControllerProvider);
     return MaterialApp.router(
       title: 'ChekiPrices',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
+      // Приложение русскоязычное: форсим ru, чтобы даты/суммы (intl) и стоковые
+      // строки Material форматировались по-русски.
+      locale: const Locale('ru'),
+      supportedLocales: const [Locale('ru'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: _router,
     );
   }

@@ -3,9 +3,10 @@
 declare(strict_types=1);
 
 /**
- * Назначение: шаг — выбрать провайдера по стране и запросить состав чека.
+ * Назначение: фискальный шаг (пока заглушён — фискального API в РБ нет).
  *
- * Роль в пайплайне: шаг 1 ReceiptProcessor.
+ * Роль в пайплайне: зарезервирован под будущий фискальный путь; сейчас возвращает
+ * пустой ReceiptData (основной путь — OCR). ReceiptProcessor его не вызывает.
  * Зависимости: Fiscal\FiscalProviderFactory, Fiscal\Dto\*.
  */
 
@@ -16,7 +17,7 @@ use ChekiPrices\Worker\Fiscal\Dto\ReceiptData;
 use ChekiPrices\Worker\Fiscal\FiscalProviderFactory;
 
 /**
- * Получение фискальных данных чека.
+ * Получение фискальных данных чека (Null-путь до появления фискального API).
  */
 final class FetchFiscalDataStep
 {
@@ -25,11 +26,9 @@ final class FetchFiscalDataStep
     ) {
     }
 
-    /**
-     * @throws \RuntimeException пока не реализовано.
-     */
+    /** Пока возвращает пустой состав чека (фискального API нет). */
     public function run(QrData $qr): ReceiptData
     {
-        throw new \RuntimeException('Not implemented');
+        return new ReceiptData(null, null, null, null, []);
     }
 }

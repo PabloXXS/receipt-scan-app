@@ -14,6 +14,7 @@ export 'app_error_view.dart';
 export 'app_list_tile.dart';
 export 'app_loader.dart';
 export 'app_scaffold.dart';
+export 'app_skeleton.dart';
 export 'app_text_field.dart';
 export 'money_text.dart';
 export 'price_delta_text.dart';

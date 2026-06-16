@@ -3,32 +3,34 @@
 declare(strict_types=1);
 
 /**
- * Назначение: шаг — OCR-fallback, если фискальные данные не получены.
+ * Назначение: основной OCR-шаг — фото из Storage → OCR-сервис → ReceiptData.
  *
- * Роль в пайплайне: шаг 2 (условный) ReceiptProcessor.
- * Зависимости: Ocr\ReceiptOcrParser, Fiscal\Dto\ReceiptData.
+ * Роль в пайплайне: шаг распознавания ReceiptProcessor (фискального API пока нет).
+ * Зависимости: Ocr\OcrServiceClient, Supabase\SupabaseClient, Fiscal\Dto\ReceiptData.
  */
 
 namespace ChekiPrices\Worker\Pipeline\Steps;
 
 use ChekiPrices\Worker\Fiscal\Dto\ReceiptData;
-use ChekiPrices\Worker\Ocr\ReceiptOcrParser;
+use ChekiPrices\Worker\Ocr\OcrServiceClient;
+use ChekiPrices\Worker\Supabase\SupabaseClient;
 
 /**
- * OCR-распознавание чека по фото как запасной путь.
+ * Скачивает фото чека из Storage и распознаёт позиции через OCR-сервис.
  */
-final class OcrFallbackStep
+class OcrFallbackStep
 {
     public function __construct(
-        private readonly ReceiptOcrParser $parser,
+        private readonly OcrServiceClient $ocr,
+        private readonly SupabaseClient $supabase,
+        private readonly string $bucket,
     ) {
     }
 
-    /**
-     * @throws \RuntimeException пока не реализовано.
-     */
+    /** Распознаёт позиции по фото чека (путь в Storage). */
     public function run(string $photoPath): ReceiptData
     {
-        throw new \RuntimeException('Not implemented');
+        $bytes = $this->supabase->downloadObject($this->bucket, $photoPath);
+        return $this->ocr->recognize($bytes);
     }
 }

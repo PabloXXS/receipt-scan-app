@@ -2,6 +2,7 @@
     "name": "chekiprices/worker",
     "description": "ChekiPrices receipt-processing worker (pgmq consumer).",
     "type": "project",
+    "license": "proprietary",
     "require": {
         "php": ">=8.2",
         "guzzlehttp/guzzle": "^7.8",
@@ -20,6 +21,10 @@
         "psr-4": {
             "ChekiPrices\\Worker\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "lint": "find src bin config -name '*.php' -print0 | xargs -0 -n1 php -l"
     },
     "config": {
         "sort-packages": true
