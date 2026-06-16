@@ -1,21 +1,18 @@
-/// Назначение: контракт создания чека из результата сканирования.
+/// Назначение: контракт async-сканирования — старт обработки и подтверждение.
 ///
 /// Слой: domain
 /// Фича: scan
-/// Зависимости: dart:typed_data, domain/entities/receipt_draft.dart.
+/// Зависимости: dart:typed_data.
 /// Ключевые типы: ScanRepository.
 library;
 
 import 'dart:typed_data';
 
-import '../entities/receipt_draft.dart';
-
 /// Контракт сценариев сканирования. Реализация — в слое data.
 abstract interface class ScanRepository {
-  /// Сохраняет распознанный чек: (опц.) загрузка фото в Storage → insert
-  /// receipts + receipt_items. Возвращает id чека.
-  Future<String> saveScannedReceipt(ReceiptDraft draft,
-      {Uint8List? photoBytes});
+  /// Загружает фото (best-effort) и создаёт чек в processing. Возвращает id.
+  Future<String> startScan({Uint8List? photoBytes, String? qrRaw});
 
-  // TODO(scan-qr): createReceiptFromQr(String raw) — отдельный цикл (скан QR-кода).
+  /// Подтверждает распознанный чек после ревью (RPC confirm_receipt).
+  Future<void> confirm(String receiptId, List<Map<String, dynamic>> items);
 }

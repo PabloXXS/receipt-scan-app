@@ -1,4 +1,4 @@
-/// Назначение: реализация ScanRepository (опц. фото → Storage; insert receipts + items).
+/// Назначение: реализация ScanRepository — старт processing-чека и confirm_receipt.
 ///
 /// Слой: data
 /// Фича: scan
@@ -13,26 +13,22 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/images/receipt_image_processor.dart';
-import '../../domain/entities/receipt_draft.dart';
 import '../../domain/repositories/scan_repository.dart';
 import '../datasources/scan_remote_datasource.dart';
 import '../scan_error_mapper.dart';
 
-/// Сохраняет распознанный чек через datasource. Фото — best-effort. Ошибки → ScanFailure.
+/// Старт обработки чека и подтверждение через datasource. Ошибки → ScanFailure.
 class ScanRepositoryImpl implements ScanRepository {
   const ScanRepositoryImpl(this._ds);
 
   final ScanRemoteDataSource _ds;
 
   @override
-  Future<String> saveScannedReceipt(
-    ReceiptDraft draft, {
-    Uint8List? photoBytes,
-  }) async {
+  Future<String> startScan({Uint8List? photoBytes, String? qrRaw}) async {
     try {
       String? photoPath;
       if (photoBytes != null) {
-        // Best-effort: сжатие или загрузка фото не должны срывать сохранение чека.
+        // Best-effort: сжатие или загрузка фото не должны срывать создание чека.
         try {
           final jpeg = processReceiptPhoto(photoBytes);
           photoPath = await _ds.uploadPhoto(jpeg);
@@ -40,7 +36,22 @@ class ScanRepositoryImpl implements ScanRepository {
           photoPath = null;
         }
       }
-      return await _ds.insertReceiptWithItems(draft, photoPath: photoPath);
+      return await _ds.insertProcessingReceipt(
+        photoPath: photoPath,
+        qrRaw: qrRaw,
+      );
+    } catch (e) {
+      throw mapScanException(e);
+    }
+  }
+
+  @override
+  Future<void> confirm(
+    String receiptId,
+    List<Map<String, dynamic>> items,
+  ) async {
+    try {
+      await _ds.confirmReceipt(receiptId, items);
     } catch (e) {
       throw mapScanException(e);
     }
